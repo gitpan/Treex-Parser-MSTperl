@@ -1,0 +1,30 @@
+---
+abstract: 'pure Perl implementation of MST parser'
+author:
+  - 'Rudolf rosa <rosa@ufal.mff.cuni.cz>'
+build_requires:
+  English: 0
+  File::Find: 0
+  File::Temp: 0
+  FindBin: 0
+  Test::More: 0
+  utf8: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.31
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.110930'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Treex-Parser-MSTperl
+requires:
+  Carp: 0
+  Data::Dumper: 0
+  Graph: 0
+  Graph::ChuLiuEdmonds: 0
+  Graph::Directed: 0
+  Moose: 0
+  YAML::Tiny: 0
+  autodie: 0
+version: 0.07298
