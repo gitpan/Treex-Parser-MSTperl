@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Node;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.08055';
 }
 
 use Moose;
@@ -43,6 +43,37 @@ has label => (
     isa     => 'Str',
     is      => 'rw',
     default => '_',
+    trigger => \&_label_set,
+);
+
+# label updated => need to update features of children
+# which contain LABEL
+# (i.e. FeaturesControl->feature_parent on config->label_field_index)
+sub _label_set {
+
+    my ($self) = @_;
+
+    # my ( $self, $parent_label ) = @_;
+
+    if ( $self->_fully_built ) {
+
+        # TODO: not necessary to update ALL of the features!
+        foreach my $child_edge ( @{ $self->children } ) {
+            my $edge_features = $self->config->
+                labelledFeaturesControl->get_all_features($child_edge);
+            $child_edge->features($edge_features);
+        }
+    }
+
+    # else only just building -> no updating yet!
+
+    return;
+}
+
+has _fully_built => (
+    isa     => 'Bool',
+    is      => 'rw',
+    default => '0',
 );
 
 sub BUILD {
@@ -59,7 +90,7 @@ sub BUILD {
         # set the parentOrd field
         $self->parentOrd($parentOrd);
 
-        # fill with dummy value as this must not not used
+        # fill with dummy value as this must not be used
         # (use node->parentOrd instead)
         $self->fields->[$parentOrdIndex] = -2;
     }
@@ -78,7 +109,7 @@ sub BUILD {
             # set the label field
             $self->label($label);
 
-            # fill with dummy value as this must not not used
+            # fill with dummy value as this must not be used
             # (use node->label instead)
             $self->fields->[$labelIndex] = '_';
         }
@@ -86,6 +117,8 @@ sub BUILD {
 
     #     my $debug = join ',', @{$self->fields};
     #     warn "$debug\n";
+
+    $self->_fully_built(1);
 
     return;
 }
@@ -129,7 +162,7 @@ Treex::Tool::Parser::MSTperl::Node
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 

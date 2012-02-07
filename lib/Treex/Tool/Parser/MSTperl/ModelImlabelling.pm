@@ -2,9 +2,6 @@ package Treex::Tool::Parser::MSTperl::ModelLabelling;
 {
   $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08055';
 }
-{
-  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08055';
-}
 
 use Moose;
 use Carp;

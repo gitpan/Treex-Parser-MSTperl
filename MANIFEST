@@ -1,5 +1,4 @@
 Changes
-Changes.template
 LICENSE
 MANIFEST
 META.yml
@@ -8,8 +7,10 @@ README
 lib/Treex/Tool/Parser/MSTperl/Config.pm
 lib/Treex/Tool/Parser/MSTperl/Edge.pm
 lib/Treex/Tool/Parser/MSTperl/FeaturesControl.pm
+lib/Treex/Tool/Parser/MSTperl/Imlabeller.pm
 lib/Treex/Tool/Parser/MSTperl/Labeller.pm
 lib/Treex/Tool/Parser/MSTperl/ModelBase.pm
+lib/Treex/Tool/Parser/MSTperl/ModelImlabelling.pm
 lib/Treex/Tool/Parser/MSTperl/ModelLabelling.pm
 lib/Treex/Tool/Parser/MSTperl/ModelUnlabelled.pm
 lib/Treex/Tool/Parser/MSTperl/Node.pm
@@ -18,6 +19,7 @@ lib/Treex/Tool/Parser/MSTperl/Reader.pm
 lib/Treex/Tool/Parser/MSTperl/RootNode.pm
 lib/Treex/Tool/Parser/MSTperl/Sentence.pm
 lib/Treex/Tool/Parser/MSTperl/TrainerBase.pm
+lib/Treex/Tool/Parser/MSTperl/TrainerImlabelling.pm
 lib/Treex/Tool/Parser/MSTperl/TrainerLabelling.pm
 lib/Treex/Tool/Parser/MSTperl/TrainerUnlabelled.pm
 lib/Treex/Tool/Parser/MSTperl/Writer.pm
@@ -37,17 +39,20 @@ lib/Treex/Tool/Parser/MSTperl/samples/treex_parse.scen
 perlcritic.rc
 t/00-compile.t
 t/author-critic.t
+t/author-test-eol.t
 t/release-cpan-changes.t
 t/release-dist-manifest.t
 t/release-distmeta.t
-t/release-has-version.t
 t/release-kwalitee.t
 t/release-minimum-version.t
+t/release-mojibake.t
 t/release-no-tabs.t
 t/release-pod-coverage.t
+t/release-pod-linkcheck.t
 t/release-pod-syntax.t
 t/release-portability.t
 t/release-synopsis.t
+t/release-test-version.t
 t/release-unused-vars.t
 t/sample.config
 t/sample_test.tsv

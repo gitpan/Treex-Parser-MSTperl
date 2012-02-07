@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Sentence;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::Sentence::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::Sentence::VERSION = '0.08055';
 }
 
 use Moose;
@@ -35,6 +35,7 @@ has nodes_with_root => (
     isa => 'ArrayRef[Treex::Tool::Parser::MSTperl::Node]',
 );
 
+# used only in unlabelled parsing
 has features => (
     is  => 'rw',
     isa => 'Maybe[ArrayRef[Str]]',
@@ -169,6 +170,8 @@ sub compute_features {
         $edge->features($edge_features);
         push @features, @{$edge_features};
     }
+
+    # (TODO) used only in unlabelled parsing
     $self->features( [@features] );
 
     return;
@@ -258,13 +261,6 @@ sub len {
     return scalar( @{ $self->nodes } )
 }
 
-sub score {
-
-    # (Treex::Tool::Parser::MSTperl::ModelBase $model)
-    my ( $self, $model ) = @_;
-    return $model->score_features( $self->features );
-}
-
 sub getNodeByOrd {
 
     # (Int $ord)
@@ -318,6 +314,29 @@ sub count_errors_labelling {
     return $errors;
 }
 
+sub count_errors_attachement_and_labelling {
+
+    # (Treex::Tool::Parser::MSTperl::Sentence $correct_sentence)
+    my ( $self, $correct_sentence ) = @_;
+
+    my $errors = 0;
+
+    #assert that nodes in the sentences with the same ords
+    # are corresponding nodes
+    foreach my $my_node ( @{ $self->nodes } ) {
+        my $my_parent      = $my_node->parentOrd;
+        my $my_label       = $my_node->label;
+        my $correct_node   = $correct_sentence->getNodeByOrd( $my_node->ord );
+        my $correct_parent = $correct_node->parentOrd;
+        my $correct_label  = $correct_node->label;
+        if ( $my_parent != $correct_parent || $my_label ne $correct_label ) {
+            $errors++;
+        }
+    }
+
+    return $errors;
+}
+
 sub toParentOrdsArray {
     my ($self) = @_;
 
@@ -356,7 +375,7 @@ Treex::Tool::Parser::MSTperl::Sentence
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 
@@ -500,12 +519,6 @@ the C<edges> and C<features> fields and also unsets the parents of all nodes
 
 Returns length of the sentence, i.e. number of nodes in the sentence.
 Each node corresponds to one word (one token to be more precise).
-
-=item $sentence->score()
-
-Returns model-wise score of the sentence (by calling
-L<Treex::Tool::Parser::MSTperl::ModelBase/score_features> on the sentence
-C<features>)
 
 =item $sentence->count_errors_attachement($correct_sentence)
 

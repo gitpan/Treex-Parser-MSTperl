@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Parser;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::Parser::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::Parser::VERSION = '0.08055';
 }
 
 use Moose;
@@ -10,9 +10,8 @@ use Treex::Tool::Parser::MSTperl::Sentence;
 use Treex::Tool::Parser::MSTperl::Edge;
 use Treex::Tool::Parser::MSTperl::ModelUnlabelled;
 
-use Graph;
-use Graph::Directed;
-use Graph::ChuLiuEdmonds;    #returns MINIMUM spanning tree
+use Graph 0.94;
+use Graph::ChuLiuEdmonds 0.05;    #returns MINIMUM spanning tree
 
 has config => (
     isa      => 'Treex::Tool::Parser::MSTperl::Config',
@@ -69,7 +68,7 @@ sub parse_sentence_internal {
     my $sentence_working_copy = $sentence->copy_nonparsed();
     my $sentence_length       = $sentence_working_copy->len();
 
-    my $graph = Graph::Directed->new(
+    my $graph = Graph->new(
         vertices => [ ( 0 .. $sentence_length ) ]
     );
     my @weighted_edges;
@@ -86,13 +85,15 @@ sub parse_sentence_internal {
                 sentence => $sentence_working_copy
             );
 
-            # my $score = $self->model->score_edge($edge);
             my $features = $self->config->unlabelledFeaturesControl
                 ->get_all_features($edge);
             my $score = $self->model->score_features($features);
 
             # only progress and/or debug info
             if ( $self->config->DEBUG >= 2 ) {
+		print $parent->ord . ' ' . $parent->fields->[1] .
+		    ' -> ' . $child->ord . ' ' . $child->fields->[1] .
+		    ' score: ' . $score . "\n";
                 print $parent->ord .
                     ' -> ' . $child->ord .
                     ' score: ' . $score . "\n";
@@ -152,7 +153,7 @@ Treex::Tool::Parser::MSTperl::Parser - pure Perl implementation of MST parser
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 

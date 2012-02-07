@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::ModelBase;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.08055';
 }
 
 use Data::Dumper;
@@ -22,7 +22,7 @@ has 'featuresControl' => (
 # called after preprocessing training data, before entering the MIRA phase
 sub prepare_for_mira {
 
-    my ( $self, $trainer ) = @_;
+    # my ( $self, $trainer ) = @_;
 
     # nothing in the base, to be overridden in extending packages
 
@@ -32,7 +32,8 @@ sub prepare_for_mira {
 # returns number of features in the model (where a "feature" can stand for
 # various things depending on the algorithm used)
 sub get_feature_count {
-    my ($self) = @_;
+
+    # my ($self) = @_;
 
     # nothing in the base, to be overridden in extending packages
 
@@ -66,7 +67,8 @@ sub store {
 }
 
 sub get_data_to_store {
-    my ($self) = @_;
+
+    # my ($self) = @_;
 
     croak 'abstract method get_data_to_store to be overridden' .
         ' and called on extending packages!';
@@ -97,7 +99,8 @@ sub store_tsv {
 }
 
 sub get_data_to_store_tsv {
-    my ($self) = @_;
+
+    # my ($self) = @_;
 
     croak 'abstract method get_tsv_data_to_store to be overridden' .
         ' and called on extending packages!';
@@ -127,7 +130,8 @@ sub load {
 }
 
 sub load_data {
-    my ( $self, $data ) = @_;
+
+    # my ( $self, $data ) = @_;
 
     croak 'abstract method load_data to be overridden' .
         ' and called on extending packages!';
@@ -167,35 +171,12 @@ sub load_tsv {
 }
 
 sub load_data_tsv {
-    my ( $self, $data ) = @_;
+
+    # my ( $self, $data ) = @_;
 
     croak 'abstract method load_tsv_data to be overridden' .
         ' and called on extending packages!';
 
-}
-
-# ACCESS TO FEATURES
-
-sub score_edge {
-
-    # (Treex::Tool::Parser::MSTperl::Edge $edge)
-    my ( $self, $edge ) = @_;
-
-    my $features_rf = $self->featuresControl->get_all_features($edge);
-    return $self->score_features($features_rf);
-}
-
-sub score_features {
-
-    # (ArrayRef[Str] $features)
-    my ( $self, $features ) = @_;
-
-    my $score = 0;
-    foreach my $feature ( @{$features} ) {
-        $score += $self->get_feature_weight($feature);
-    }
-
-    return $score;
 }
 
 1;
@@ -214,16 +195,12 @@ Treex::Tool::Parser::MSTperl::ModelBase
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 
-TODO: outdated; some of the information should be moved to ModelUnlabelled
-and some should be added
-
 This is a base class for an in-memory represenation of a parsing or labelling
 model.
-The model is represented by features and their weights.
 
 =head1 FIELDS
 
@@ -231,44 +208,17 @@ The model is represented by features and their weights.
 
 =item config
 
+Instance of L<Treex::Tool::Parser::MSTperl::Config> containing settings to be
+used for the model.
+
 =item featuresControl
+
+Provides access to features, especially enabling their computation.
+Intance of L<Treex::Tool::Parser::MSTperl::FeaturesControl>.
 
 =back
 
 =head1 METHODS
-
-=head2 Access to feature weights
-
-=over 4
-
-=item my $edge_score =
-$model->score_edge($edge);
-
-Counts the score of an edge by summing up weights of all of its features.
-
-=item my $score =
-$model->score_features(['0:být|VB', '1:pes|N1', ...]);
-
-Counts the score of an edge or sentence by summing up weights of all of its
-features, which are passed as an array reference.
-
-=item my $feature_weight = $model->get_feature_weight('1:pes|N1');
-
-Returns the weight of a given feature,
-or C<0> if the feature is not contained in the model.
-
-=item $model->set_feature_weight('1:pes|N1', 0.0021);
-
-Sets a new weight for a given feature.
-
-=item $model->update_feature_weight('1:pes|N1', 0.0042);
-
-Adds the update value to current feature weight - eg. if the weight of the
-feature C<'1:pes|N1'> is currently C<0.0021>, it will be C<0.0063> after the
-call.
-The update can also be negative - then the weight of the feature decreases.
-
-=back
 
 =head2 Loading and storing
 
@@ -276,7 +226,7 @@ The update can also be negative - then the weight of the feature decreases.
 
 =item $model->load('modelfile.model');
 
-Loads model (= loads feature weights) from file in L<Data::Dumper> format:
+Loads model from file in L<Data::Dumper> format, eg.:
 
     $VAR1 = {
         '0:být|VB' => '0.0042',
@@ -284,11 +234,12 @@ Loads model (= loads feature weights) from file in L<Data::Dumper> format:
         ...
     };
 
-The feature codes are represented by their indexes in C<all_feature_codes>.
+The feature codes are represented by their indexes
+(see L<Treex::Tool::Parser::MSTperl::FeaturesControl/simple_feature_codes>).
 
 =item $model->load_tsv('modelfile.tsv');
 
-Loads model from file in TSV (tab separated values) format:
+Loads model from file in TSV (tab separated values) format, eg.:
 
         L|T:být|VB [tab] 0.0042
         l|t:pes|N1 [tab] 0.0021
@@ -304,6 +255,37 @@ Stores model into file in L<Data::Dumper> format.
 
 Stores model into file in TSV format:
 
+=back
+
+=head3 Method stubs to be overridden in extending packages.
+
+=over 4
+
+=item $data = get_data_to_store(), $data = get_data_to_store_tsv()
+
+Returns the data that form the model to be saved to a model file.
+
+=item load_data($data), load_data_tsv($data)
+
+Fills the model with model data acquired from a model file.
+
+=back
+
+=head2 Training support
+
+=head3 Method stubs to be overridden in extending packages.
+
+=over 4
+
+=item prepare_for_mira
+
+Called after preprocessing training data, before entering the MIRA phase.
+
+=item get_feature_count
+
+Only to provide information about the model.
+Returns number of features in the model (where a "feature" can stand for
+various things depending on the algorithm used).
 
 =back
 

@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Edge;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::Edge::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::Edge::VERSION = '0.08055';
 }
 
 use Moose;
@@ -85,7 +85,7 @@ Treex::Tool::Parser::MSTperl::Edge
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 

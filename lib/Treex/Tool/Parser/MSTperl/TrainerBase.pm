@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::TrainerBase;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::TrainerBase::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::TrainerBase::VERSION = '0.08055';
 }
 
 use Moose;
@@ -35,18 +35,6 @@ has number_of_inner_iterations => (
     is  => 'rw',
 );
 
-# v
-# all values of features used during the training summed together
-# as using average weights instead of final weights
-# is reported to help avoid overtraining
-# For labeller has the form of ->{feature}->{label} = weight
-# instead of ->{feature} = weight
-has feature_weights_summed => (
-    isa     => 'HashRef',
-    is      => 'rw',
-    default => sub { {} },
-);
-
 # TRAINING COMMON SUBS
 
 sub train {
@@ -76,11 +64,12 @@ sub train {
     $self->preprocess_sentences($training_data);
 
     # do the training
-    # for n : 1..N
     if ( $self->config->DEBUG >= 1 ) {
         print "Training the model...\n";
     }
     my $innerIteration = 0;
+
+    # for n : 1..N
     for (
         my $iteration = 1;
         $iteration <= $self->number_of_iterations;
@@ -96,9 +85,9 @@ sub train {
         # for t : 1..T # these are the inner iterations
         foreach my $sentence_correct ( @{$training_data} ) {
 
-            # weight of feature weights sum update <N*T .. 1>
+            # weight of weights/scores sum update <N*T .. 1>;
             # $sumUpdateWeight denotes number of summands
-            # in which the weight would appear
+            # in which the new value would appear
             # if it were computed according to the definition
             my $sumUpdateWeight =
                 $self->number_of_inner_iterations - $innerIteration;
@@ -131,8 +120,8 @@ sub train {
         print "FINAL FEATURE WEIGTHS:\n";
     }
 
-    # recount weights of features as averages
-    $self->recompute_feature_weights();
+    # average the model (is said to help overfitting)
+    $self->scores_averaging();
 
     # only progress and/or debug info
     my $feature_count = $self->model->get_feature_count();
@@ -202,24 +191,6 @@ sub preprocess_sentences {
     return;
 }
 
-# recompute feature weights as averages
-sub recompute_feature_weights {
-
-    my ($self) = @_;
-
-    foreach my $feature ( keys %{ $self->feature_weights_summed } ) {
-
-        # w = v/(N * T)
-        # see also: my $self->number_of_inner_iterations =
-        # $self->number_of_iterations * $sentence_count;
-
-        $self->recompute_feature_weight($feature);
-    }
-
-    return;
-
-}
-
 # ABSTRACT TRAINING SUB STUBS (TO BE REDEFINED IN DESCENDED PACKAGES)
 
 # compute the features of the sentence
@@ -227,59 +198,62 @@ sub recompute_feature_weights {
 sub preprocess_sentence {
 
     # (Treex::Tool::Parser::MSTperl::Sentence $sentence, Num $progress)
-    my ( $self, $sentence, $progress ) = @_;
+    # my ( $self, $sentence, $progress ) = @_;
 
     croak 'TrainerBase::preprocess_sentence is an abstract method,'
         . ' it must be called'
         . ' either from TrainerUnlabelled or TrainerLabelling!';
-
-    return;
 }
 
 sub update {
 
     # (Treex::Tool::Parser::MSTperl::Sentence $sentence_correct,
     # Int $sumUpdateWeight)
-    my ( $self, $sentence_correct, $sumUpdateWeight ) = @_;
+    # my ( $self, $sentence_correct, $sumUpdateWeight ) = @_;
 
     croak 'TrainerBase::update is an abstract method, it must be called'
         . ' either from TrainerUnlabelled or TrainerLabelling!';
 }
 
-sub mira_update {
+# sub mira_update {
+#
+#     # (Treex::Tool::Parser::MSTperl::Sentence $sentence_correct,
+#     # Treex::Tool::Parser::MSTperl::Sentence $sentence_best,
+#     # Int $sumUpdateWeight)
+#     # my ( $self, $sentence_correct, $sentence_best, $sumUpdateWeight ) = @_;
+#
+#     croak 'TrainerBase::mira_update is an abstract method, it must be called'
+#         . ' either from TrainerUnlabelled or TrainerLabelling!';
+# }
 
-    # (Treex::Tool::Parser::MSTperl::Sentence $sentence_correct,
-    # Treex::Tool::Parser::MSTperl::Sentence $sentence_best,
-    # Int $sumUpdateWeight)
-    my ( $self, $sentence_correct, $sentence_best, $sumUpdateWeight ) = @_;
+# recompute feature weights/scores as averages
+sub scores_averaging {
 
-    croak 'TrainerBase::mira_update is an abstract method, it must be called'
-        . ' either from TrainerUnlabelled or TrainerLabelling!';
-}
+    # my ($self) = @_;
 
-sub recompute_feature_weight {
-
-    # Str $feature
-    my ( $self, $feature ) = @_;
-
-    croak 'TrainerBase::recompute_feature_weight is an abstract method, it '
+    croak 'TrainerBase::scores_averaging is an abstract method, it '
         . 'must be called either from TrainerUnlabelled or TrainerLabelling!';
+
 }
 
-# TRAINING SUPPORTING SUBS
+# MODEL STORING
 
-# update weight of the feature
-# (also update the sum of feature weights: feature_weights_summed)
-sub update_feature_weight {
+sub store_model {
 
-    # (Str $feature, Num $update, Num $sumUpdateWeight,
-    #   Maybe[Str] $label, Maybe[Str] $label_prev)
+    my ( $self, $filename ) = @_;
 
-    my ( $self, $feature, $update, $sumUpdateWeight, $label, $label_prev ) = @_;
+    $self->model->store($filename);
 
-    croak 'TrainerBase::update_feature_weight is an abstract method,'
-        . ' it must be called'
-        . ' either from TrainerUnlabelled or TrainerLabelling!';
+    return;
+}
+
+sub store_model_tsv {
+
+    my ( $self, $filename ) = @_;
+
+    $self->model->store_tsv($filename);
+
+    return;
 }
 
 1;
@@ -298,15 +272,12 @@ Treex::Tool::Parser::MSTperl::TrainerBase
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 
 Trains on correctly parsed sentences and so creates and tunes the model.
 Uses single-best MIRA (McDonald et al., 2005, Proc. HLT/EMNLP)
-
-Mathematically-looking comments at ends of some lines correspond to the
-pseudocode description of MIRA provided by McDonald et al.
 
 =head1 FIELDS
 
@@ -322,53 +293,7 @@ Reference to the instance of L<Treex::Tool::Parser::MSTperl::Config>.
 
 =over 4
 
-
-
-
-The C<sumUpdateWeight> is a number by which the change of the feature weights
-is multiplied in the sum of the weights, so that at the end of the algorithm
-the sum corresponds to its formal definition, which is a sum of all weights
-after each of the updates. C<sumUpdateWeight> is a member of a sequence going
-from N*T to 1, where N is the number of iterations
-(L<Treex::Tool::Parser::MSTperl::FeaturesControl/number_of_iterations>, C<10>
-by default) and T being the number of sentences in training data, N*T thus
-being the number of inner iterations, i.e. how many times C<mira_update()> is
-called.
-
-=item my ( $features_diff_1, $features_diff_2, $features_diff_count ) =
-    features_diff( $features_1, $features_2 );
-
-Compares features of two parses of a sentence, where the features
-(C<$features_1>, C<$features_2>) are represented as a reference to
-an array of strings representing the features
-(the same feature might be present repeatedly, all occurencies of the same
-feature are summed together).
-
-Features that appear exactly the same times in both parses are disregarded.
-
-The first two returned values (C<$features_diff_1>, C<$features_diff_2>)
-are array references,
-C<$features_diff_1> containing features that appear in the first parse
-(C<$features_1>) more often than in the second parse (C<$features_2>),
-and vice versa for C<$features_diff_2>.
-Each feature is contained as many times as is the difference in number
-of occurencies, eg. if the feature C<TAG|tag:NN|NN> appears 5 times in the
-first parse and 8 times in the second parse, then C<$features_diff_2>
-will contain C<'TAG|tag:NN|NN', 'TAG|tag:NN|NN', 'TAG|tag:NN|NN'>.
-
-The third returned value (C<$features_diff_count>) is a count of features
-in which the parses differ, ie.
-C<$features_diff_count = scalar(@$features_diff_1) + scalar(@$features_diff_2)>.
-
-=item update_feature_weight( $model, $feature, $update, $sumUpdateWeight )
-
-Updates weight of C<$feature> by C<$update>
-(which might be positive or negative)
-and also updates the sum of updates of the feature
-(which is later used for overtraining avoidance),
-multiplied by C<$sumUpdateWeight>, which is simply a count of inner iterations
-yet to be performed (thus eliminating the need to update the sum on each
-inner iteration).
+=item TODO
 
 =back
 

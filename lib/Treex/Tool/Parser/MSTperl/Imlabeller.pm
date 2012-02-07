@@ -1,6 +1,6 @@
-package Treex::Tool::Parser::MSTperl::Labeller;
+package Treex::Tool::Parser::MSTperl::Imlabeller;
 {
-  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::Imlabeller::VERSION = '0.08055';
 }
 
 use Moose;
@@ -8,7 +8,7 @@ use Carp;
 
 use Treex::Tool::Parser::MSTperl::Sentence;
 use Treex::Tool::Parser::MSTperl::Edge;
-use Treex::Tool::Parser::MSTperl::ModelLabelling;
+use Treex::Tool::Parser::MSTperl::ModelImlabelling;
 
 has config => (
     isa      => 'Treex::Tool::Parser::MSTperl::Config',
@@ -17,7 +17,7 @@ has config => (
 );
 
 has model => (
-    isa => 'Maybe[Treex::Tool::Parser::MSTperl::ModelLabelling]',
+    isa => 'Maybe[Treex::Tool::Parser::MSTperl::ModelImlabelling]',
     is  => 'rw',
 );
 
@@ -25,7 +25,7 @@ sub BUILD {
     my ($self) = @_;
 
     $self->model(
-        Treex::Tool::Parser::MSTperl::ModelLabelling->new(
+        Treex::Tool::Parser::MSTperl::ModelImlabelling->new(
             config => $self->config,
             )
     );
@@ -74,7 +74,7 @@ sub label_sentence_internal {
     $sentence_working_copy->fill_fields_before_labelling();
 
     if ( $self->config->DEBUG >= 2 ) {
-        print "Labelling sentence: "
+        print "Imlabelling sentence: "
             . ( join ' ', map { $_->fields->[1] } @{ $sentence->nodes } )
             . " \n";
     }
@@ -145,7 +145,7 @@ sub label_subtree {
 
         # only progress and/or debug info
         if ( $self->config->DEBUG >= 3 ) {
-            print "  Labelling edge to node "
+            print "  Imlabelling edge to node "
                 . $edge->child->ord . ' ' . $edge->child->fields->[1] . "\n";
             print "  Currently there are "
                 . ( keys %$states ) . " states\n";
@@ -547,7 +547,7 @@ sub get_possible_labels_internal {
 
         # these algorithms have such a simple way of computing possible labels
         # they they do not need to have it split into two subroutines
-        croak "Labeller->get_possible_labels_internal not implemented"
+        croak "Imlabeller->get_possible_labels_internal not implemented"
             . " for algorithm no $ALGORITHM!";
     }
 
@@ -603,20 +603,20 @@ __END__
 =head1 VERSION
 
 version 0.08055
-Treex::Tool::Parser::MSTperl::Labeller - pure Perl implementation
-of a dependency tree labeller for the MST parser
+Treex::Tool::Parser::MSTperl::Imlabeller - pure Perl implementation
+of a dependency tree is_member labeller for the MST parser
 
 =head1 DESCRIPTION
 
-This is a Perl implementation of the labeller for MST Parser
+This is a Perl implementation of the is_member labeller for MST Parser
 which is (most probably) described in
 McDonald, Ryan: Discriminative Learning And Spanning Tree Algorithms
-For Dependency Parsing, 2006 (chapter 3.3.3 Two-Stage Labelling).
+For Dependency Parsing, 2006 (chapter 3.3.3 Two-Stage Imlabelling).
 
 For a dependency parse tree - presumably, but not necessarily, obtained using
 the MST parser (L<Treex::Tool::Parser::MSTperl::Parser>), possibly
-non-projective - assigns the most probable labels to the edges of the tree,
-using the given model (L<Treex::Tool::Parser::MSTperl::ModelLabelling>).
+non-projective - assigns is_member labels
+(L<Treex::Tool::Parser::MSTperl::ModelImlabelling>).
 
 Assigning labels is implemented as sequence labelling, where the sequence to
 be labelled is each sequence of edges between a parent node and its children.
@@ -636,7 +636,7 @@ of labels. However, instead of probabilities we use (real-valued) scores and
 therefore instead of multiplication addition is used in Viterbi.
 
 For detail on the features and training see
-L<Treex::Tool::Parser::MSTperl::TrainerLabelling>.
+L<Treex::Tool::Parser::MSTperl::TrainerImlabelling>.
 
 
 I have used several sources of information to implement it, especially:
@@ -668,7 +668,7 @@ A Systematic Cross-Comparison of Sequence Classifiers
 Instance of L<Treex::Tool::Parser::MSTperl::Config> containing settings to be
 used with labeller.
 
-Currently the settings most relevant to the Labeller are the following:
+Currently the settings most relevant to the Imlabeller are the following:
 
 =over 8
 
@@ -692,7 +692,7 @@ See L<Treex::Tool::Parser::MSTperl::Config/SEQUENCE_BOUNDARY_LABEL>.
 
 =item model
 
-An instance of L<Treex::Tool::Parser::MSTperl::ModelLabelling>
+An instance of L<Treex::Tool::Parser::MSTperl::ModelImlabelling>
 used to label the trees. It can be changed if needed (it is usually needed
 when training the labeller).
 
@@ -702,7 +702,7 @@ when training the labeller).
 
 =over 4
 
-=item my $labeller = Treex::Tool::Parser::MSTperl::Labeller->new(
+=item my $labeller = Treex::Tool::Parser::MSTperl::Imlabeller->new(
 config => $self->config);
 
 Creates an instance of the labeller using the given configuration, also

@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Writer;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::Writer::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::Writer::VERSION = '0.08055';
 }
 
 use Moose;
@@ -67,7 +67,7 @@ Treex::Tool::Parser::MSTperl::Writer
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 

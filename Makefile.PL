@@ -4,41 +4,43 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
 my %WriteMakefileArgs = (
-  'ABSTRACT' => 'pure Perl implementation of MST parser',
-  'AUTHOR' => 'Rudolf rosa <rosa@ufal.mff.cuni.cz>',
-  'BUILD_REQUIRES' => {
-    'English' => '0',
-    'File::Find' => '0',
-    'File::Temp' => '0',
-    'FindBin' => '0',
-    'Test::More' => '0',
-    'utf8' => '0'
+  "ABSTRACT" => "pure Perl implementation of MST parser",
+  "AUTHOR" => "Rudolf rosa <rosa\@ufal.mff.cuni.cz>",
+  "BUILD_REQUIRES" => {
+    "English" => 0,
+    "File::Find" => 0,
+    "File::Temp" => 0,
+    "FindBin" => 0,
+    "Test::More" => 0,
+    "Test::Requires" => 0,
+    "strict" => 0,
+    "utf8" => 0,
+    "warnings" => 0
   },
-  'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
   },
-  'DISTNAME' => 'Treex-Parser-MSTperl',
-  'EXE_FILES' => [],
-  'LICENSE' => 'perl',
-  'NAME' => 'Treex::Parser::MSTperl',
-  'PREREQ_PM' => {
-    'Carp' => '0',
-    'Data::Dumper' => '0',
-    'Graph' => '0',
-    'Graph::ChuLiuEdmonds' => '0',
-    'Graph::Directed' => '0',
-    'Moose' => '0',
-    'YAML::Tiny' => '0',
-    'autodie' => '0'
+  "DISTNAME" => "Treex-Parser-MSTperl",
+  "EXE_FILES" => [],
+  "LICENSE" => "perl",
+  "NAME" => "Treex::Parser::MSTperl",
+  "PREREQ_PM" => {
+    "Carp" => 0,
+    "Data::Dumper" => 0,
+    "Graph" => "0.94",
+    "Graph::ChuLiuEdmonds" => "0.05",
+    "Moose" => 0,
+    "YAML::Tiny" => 0,
+    "autodie" => 0
   },
-  'VERSION' => '0.07298',
-  'test' => {
-    'TESTS' => 't/*.t'
+  "VERSION" => "0.08055",
+  "test" => {
+    "TESTS" => "t/*.t"
   }
 );
 

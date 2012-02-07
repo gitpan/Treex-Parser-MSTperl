@@ -1,6 +1,9 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
-0.07298	      2011-11-15
+0.08055      2012-02-07
+    - labeller now works
+
+0.07298      2011-11-15
     - the first release at CPAN
 
 

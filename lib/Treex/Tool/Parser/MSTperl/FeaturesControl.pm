@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::FeaturesControl;
-BEGIN {
-  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.07298';
+{
+  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.08055';
 }
 
 use Moose;
@@ -246,7 +246,11 @@ sub set_simple_feature {
         }
 
         # function feature
-    } elsif ( $simple_feature_code =~ /^([12\.a-z]+|[A-Z]+)\([a-z0-9_,]*\)$/ ) {
+    } elsif (
+        $simple_feature_code
+        =~ /^([12\.a-z]+|[A-Z]+)\([-a-z0-9_,]*\)$/
+        )
+    {
         my $function_name = $1;
         $simple_feature_sub =
             $self->get_simple_feature_sub_reference($function_name);
@@ -262,22 +266,22 @@ sub set_simple_feature {
 
             # no-arg function feature
             $simple_feature_field = [];
-        } elsif ( $simple_feature_code =~ /$function_name\(([a-z0-9_]+)\)$/ ) {
+        } elsif ( $simple_feature_code =~ /$function_name\(([-a-z0-9_]+)\)$/ ) {
 
             # one-arg function feature
             $simple_feature_field = $1;
-        } elsif ( $simple_feature_code
-            =~ /$function_name\(([a-z0-9_]+),([a-z0-9_]+)\)$/ ) {
+        } elsif (
+            $simple_feature_code
+            =~ /$function_name\(([-a-z0-9_,]+)\)$/
+            )
+        {
 
-            # two-arg function feature
-            my $simple_feature_field_1 = $1;
-            my $simple_feature_field_2 = $2;
-            $simple_feature_field =
-                [ $simple_feature_field_1, $simple_feature_field_2 ];
+            # multiarg function feature
+            my @fields = split /,/, $1;
+            $simple_feature_field = \@fields;
         } else {
             die "Incorrect simple function feature format " .
-                "'$simple_feature_code'. " .
-                "Only zero, one or two arguments can be used.\n";
+                "'$simple_feature_code'.\n";
         }
     } else {
         die "Incorrect simple feature format '$simple_feature_code'.\n";
@@ -305,10 +309,21 @@ sub set_simple_feature {
 
 # FEATURES COMPUTATION
 
+# array (ref) of all features of the edge,
+# in the form of "feature_index:values_string" strings,
+# where feature_index is the index of the feature
+# (index in feature_codes, translatable via feature_indexes)
+# and values_string are values of corresponding simple features,
+# joined together by '|'
+# (if any of the simple features does not return a value, the whole feature
+# is not present)
+# TODO maybe not returning a value is still a valuable information -> include?
 sub get_all_features {
     my ( $self, $edge ) = @_;
 
     # try to get features from cache
+    # TODO: cache not used now and probably does not even work:
+    # check&fix or remove
     my $edge_signature;
     if ( $self->use_edge_features_cache ) {
         $edge_signature = $edge->signature();
@@ -354,6 +369,10 @@ sub get_all_features {
     return \@features;
 }
 
+# returns value of feature: simple feature values joined by '|'
+# or '' if any of them is undefined or empty;
+# for an array feature returns an array (ref) of these
+# or an empty array (ref)
 sub get_feature_value {
     my ( $self, $feature_index, $simple_feature_values ) = @_;
 
@@ -375,7 +394,7 @@ sub get_feature_value {
         my @values;
         foreach my $simple_feature_index ( @{$simple_features_indexes} ) {
             my $value = $simple_feature_values->[$simple_feature_index];
-            if ( $value ne '' ) {
+            if ( defined $value && $value ne '' ) {
                 push @values, $value;
             } else {
                 return '';
@@ -456,29 +475,37 @@ sub get_simple_feature_values_array {
 }
 
 my %simple_feature_sub_references = (
-    'distance'     => \&{feature_distance},
-    'attdir'       => \&{feature_attachement_direction},
-    'preceding'    => \&{feature_preceding_child},
-    'PRECEDING'    => \&{feature_preceding_parent},
-    '1.preceding'  => \&{feature_preceding_first},
-    '2.preceding'  => \&{feature_preceding_second},
-    'following'    => \&{feature_following_child},
-    'FOLLOWING'    => \&{feature_following_parent},
-    '1.following'  => \&{feature_following_first},
-    '2.following'  => \&{feature_following_second},
-    'between'      => \&{feature_between},
-    'foreach'      => \&{feature_foreach},
-    'equals'       => \&{feature_equals},
-    'equalspc'     => \&{feature_equals_pc},
-    'equalspcat'   => \&{feature_equals_pc_at},
-    'isfirst'      => \&{feature_child_is_first_in_sentence},
-    'ISFIRST'      => \&{feature_parent_is_first_in_sentence},
-    'islast'       => \&{feature_child_is_last_in_sentence},
-    'ISLAST'       => \&{feature_parent_is_last_in_sentence},
-    'isfirstchild' => \&{feature_child_is_first_child},
-    'islastchild'  => \&{feature_child_is_last_child},
-    'childno'      => \&{feature_number_of_childs_children},
-    'CHILDNO'      => \&{feature_number_of_parents_children},
+    'LABEL'             => \&{feature_parent_label},
+    'distance'          => \&{feature_distance},
+    'attdir'            => \&{feature_attachement_direction},
+    'preceding'         => \&{feature_preceding_child},
+    'PRECEDING'         => \&{feature_preceding_parent},
+    '1.preceding'       => \&{feature_preceding_first},
+    '2.preceding'       => \&{feature_preceding_second},
+    'following'         => \&{feature_following_child},
+    'FOLLOWING'         => \&{feature_following_parent},
+    '1.following'       => \&{feature_following_first},
+    '2.following'       => \&{feature_following_second},
+    'between'           => \&{feature_between},
+    'foreach'           => \&{feature_foreach},
+    'equals'            => \&{feature_equals},
+    'equalspc'          => \&{feature_equals_pc},
+    'equalspcat'        => \&{feature_equals_pc_at},
+    'arrayat'           => \&{feature_array_at_child},
+    'ARRAYAT'           => \&{feature_array_at_parent},
+    'arrayatcp'         => \&{feature_array_at_cp},
+    'isfirst'           => \&{feature_child_is_first_in_sentence},
+    'ISFIRST'           => \&{feature_parent_is_first_in_sentence},
+    'islast'            => \&{feature_child_is_last_in_sentence},
+    'ISLAST'            => \&{feature_parent_is_last_in_sentence},
+    'isfirstchild'      => \&{feature_child_is_first_child},
+    'islastchild'       => \&{feature_child_is_last_child},
+    'islastleftchild'   => \&{feature_child_is_last_left_child},
+    'isfirstrightchild' => \&{feature_child_is_first_right_child},
+    'childno'           => \&{feature_number_of_childs_children},
+    'CHILDNO'           => \&{feature_number_of_parents_children},
+    'substr'            => \&{feature_substr_child},
+    'SUBSTR'            => \&{feature_substr_parent},
 );
 
 sub get_simple_feature_sub_reference {
@@ -533,6 +560,11 @@ sub feature_parent {
     return ( $edge->parent->fields->[$field_index] );
 }
 
+sub feature_parent_label {
+    my ( $self, $edge ) = @_;
+    return ( $edge->parent->label );
+}
+
 sub feature_first {
     my ( $self, $edge, $field_index ) = @_;
     return ( $edge->first->fields->[$field_index] );
@@ -541,6 +573,55 @@ sub feature_first {
 sub feature_second {
     my ( $self, $edge, $field_index ) = @_;
     return ( $edge->second->fields->[$field_index] );
+}
+
+sub feature_left_sibling {
+    my ( $self, $edge, $field_index ) = @_;
+
+    my $siblings = $edge->parent->children;
+    my $is_first = ( $siblings->[0]->child->ord == $edge->child->ord );
+    if ($is_first) {
+
+        # there is no left sibling to the leftmost node
+        return '#start#';
+    } else {
+
+        # find my position among parent's children (is at least 1)
+        my $my_index = 1;
+        while ( $siblings->[$my_index]->child->ord != $edge->child->ord ) {
+            $my_index++;
+        }
+
+        # now ($my_index-1) is the index of my (closest) left sibling
+        return ( $siblings->[ $my_index - 1 ]->child->fields->[$field_index] );
+    }
+}
+
+sub feature_right_sibling {
+    my ( $self, $edge, $field_index ) = @_;
+
+    my $siblings           = $edge->parent->children;
+    my $last_sibling_index = scalar(@$siblings) - 1;
+    my $is_last            = (
+        $siblings->[$last_sibling_index]->child->ord
+            == $edge->child->ord
+    );
+    if ($is_last) {
+
+        # there is no right sibling to the rightmost node
+        return '#end#';
+    } else {
+
+        # find my position among parent's children
+        # (is at most $last_sibling_index - 1)
+        my $my_index = $last_sibling_index - 1;
+        while ( $siblings->[$my_index]->child->ord != $edge->child->ord ) {
+            $my_index--;
+        }
+
+        # now ($my_index+1) is the index of my (closest) right sibling
+        return ( $siblings->[ $my_index + 1 ]->child->fields->[$field_index] );
+    }
 }
 
 sub feature_preceding_child {
@@ -841,6 +922,119 @@ sub feature_equals_pc_at {
     }
 }
 
+# substring (field, start, length)
+sub feature_substr_child {
+    my ( $self, $edge, $arguments ) = @_;
+
+    # substr takes two or three arguments
+    if ( @{$arguments} != 3 && @{$arguments} != 2 ) {
+        croak "substr() takes THREE or TWO arguments!!!";
+    } else {
+        my ( $field_index, $start, $length ) = @{$arguments};
+        my $field = $edge->child->fields->[$field_index];
+
+        my $value = '';
+        if ( defined $field ) {
+            if ( defined $length ) {
+                $value = substr( $field, $start, $length );
+            } else {
+                $value = substr( $field, $start );
+            }
+        }
+
+        return $value;
+    }
+}
+
+# substring (field, start, length)
+sub feature_substr_parent {
+    my ( $self, $edge, $arguments ) = @_;
+
+    # substr takes two or three arguments
+    if ( @{$arguments} != 3 && @{$arguments} != 2 ) {
+        croak "substr() takes THREE or TWO arguments!!!";
+    } else {
+        my ( $field_index, $start, $length ) = @{$arguments};
+        my $field = $edge->parent->fields->[$field_index];
+
+        my $value = '';
+        if ( defined $field ) {
+            if ( defined $length ) {
+                $value = substr( $field, $start, $length );
+            } else {
+                $value = substr( $field, $start );
+            }
+        }
+
+        return $value;
+    }
+}
+
+# arrayat (array, index)
+sub feature_array_at_child {
+    my ( $self, $edge, $arguments ) = @_;
+
+    # arrayat takes two arguments
+    if ( @{$arguments} != 2 ) {
+        croak "arrayat() takes TWO arguments!!!";
+    } else {
+        my ( $array_field, $index_field ) = @{$arguments};
+        my $array = $edge->child->fields->[$array_field];
+        my $index = $edge->child->fields->[$index_field];
+
+        my @array = split / /, $array;
+        my $value = $array[$index];
+        if ( !defined $value ) {
+            $value = '';
+        }
+
+        return $value;
+    }
+}
+
+sub feature_array_at_parent {
+    my ( $self, $edge, $arguments ) = @_;
+
+    # arrayat takes two arguments
+    if ( @{$arguments} != 2 ) {
+        croak "arrayat() takes TWO arguments!!!";
+    } else {
+        my ( $array_field, $index_field ) = @{$arguments};
+        my $array = $edge->parent->fields->[$array_field];
+        my $index = $edge->parent->fields->[$index_field];
+
+        my @array = split / /, $array;
+        my $value = $array[$index];
+        if ( !defined $value ) {
+            $value = '';
+        }
+
+        return $value;
+    }
+}
+
+# arrayatcp (array, index)
+sub feature_array_at_cp {
+    my ( $self, $edge, $arguments ) = @_;
+
+    # arrayat takes two arguments
+    if ( @{$arguments} != 2 ) {
+        croak "arrayat() takes TWO arguments!!!";
+    } else {
+        my ( $array_field, $index_field ) = @{$arguments};
+        my $array = $edge->child->fields->[$array_field];
+        my $index = $edge->parent->fields->[$index_field];
+
+        my @array = split / /, $array;
+        my $value = $array[$index];
+        if ( !defined $value ) {
+            $value = '';
+        }
+
+        return $value;
+    }
+}
+
 sub feature_child_is_first_in_sentence {
     my ( $self, $edge, $field_index ) = @_;
 
@@ -918,6 +1112,95 @@ sub feature_child_is_last_child {
     }
 }
 
+sub feature_child_is_first_right_child {
+    my ( $self, $edge ) = @_;
+
+    my $is_right = ( $edge->parent->ord < $edge->child->ord );
+    if ($is_right) {
+        my $siblings = $edge->parent->children;
+        my $is_first = ( $siblings->[0]->child->ord == $edge->child->ord );
+        if ($is_first) {
+
+            # is right & is first (= leftmost) of all siblings
+            return 1;
+        } else {
+
+            # find my position among parent's children (is at least 1)
+            my $my_index = 1;
+            while ( $siblings->[$my_index]->child->ord != $edge->child->ord ) {
+                $my_index++;
+            }
+
+            # now ($my_index-1) is the index of my (closest) left sibling
+            my $sibling_is_left =
+                (
+                $siblings->[ $my_index - 1 ]->child->ord
+                    < $edge->parent->ord
+                );
+            if ($sibling_is_left) {
+
+                # is right and closest left sibling is left
+                return 1;
+            } else {
+
+                # is right but not the first one
+                return 0;
+            }
+        }
+    } else {
+
+        # is left
+        return 0;
+    }
+}
+
+sub feature_child_is_last_left_child {
+    my ( $self, $edge ) = @_;
+
+    my $is_left = ( $edge->child->ord < $edge->parent->ord );
+    if ($is_left) {
+        my $siblings           = $edge->parent->children;
+        my $last_sibling_index = scalar(@$siblings) - 1;
+        my $is_last            = (
+            $siblings->[$last_sibling_index]->child->ord
+                == $edge->child->ord
+        );
+        if ($is_last) {
+
+            # is left & is last of all siblings
+            return 1;
+        } else {
+
+            # find my position among parent's children
+            # (is at most $last_sibling_index - 1)
+            my $my_index = $last_sibling_index - 1;
+            while ( $siblings->[$my_index]->child->ord != $edge->child->ord ) {
+                $my_index--;
+            }
+
+            # now ($my_index+1) is the index of my (closest) right sibling
+            my $sibling_is_right =
+                (
+                $edge->parent->ord
+                    < $siblings->[ $my_index + 1 ]->child->ord
+                );
+            if ($sibling_is_right) {
+
+                # is left and closest right sibling is right
+                return 1;
+            } else {
+
+                # is left but not the last one
+                return 0;
+            }
+        }
+    } else {
+
+        # is right
+        return 0;
+    }
+}
+
 sub feature_number_of_childs_children {
     my ( $self, $edge ) = @_;
 
@@ -956,7 +1239,7 @@ Treex::Tool::Parser::MSTperl::FeaturesControl
 
 =head1 VERSION
 
-version 0.07298
+version 0.08055
 
 =head1 DESCRIPTION
 
