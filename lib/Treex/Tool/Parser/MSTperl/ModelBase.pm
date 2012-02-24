@@ -1,12 +1,16 @@
 package Treex::Tool::Parser::MSTperl::ModelBase;
 {
-  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.08268';
 }
 
 use Data::Dumper;
 use autodie;
 use Moose;
 use Carp;
+
+require File::Temp;
+use File::Temp ();
+use File::Temp qw/ :seekable /;
 
 has 'config' => (
     isa      => 'Treex::Tool::Parser::MSTperl::Config',
@@ -115,6 +119,13 @@ sub load {
         print "Loading model from '$filename'...\n";
     }
 
+    my $tmpfile;
+    if ( $filename =~ /\.gz$/ ) {
+        $tmpfile = File::Temp->new( UNLINK => 1 );
+        system "gunzip -c $filename > $tmpfile";
+        $filename = $tmpfile->filename;
+    }
+
     my $data   = do $filename;
     my $result = $self->load_data($data);
 
@@ -195,7 +206,7 @@ Treex::Tool::Parser::MSTperl::ModelBase
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 

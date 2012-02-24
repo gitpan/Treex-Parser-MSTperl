@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Parser;
 {
-  $Treex::Tool::Parser::MSTperl::Parser::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::Parser::VERSION = '0.08268';
 }
 
 use Moose;
@@ -91,9 +91,9 @@ sub parse_sentence_internal {
 
             # only progress and/or debug info
             if ( $self->config->DEBUG >= 2 ) {
-		print $parent->ord . ' ' . $parent->fields->[1] .
-		    ' -> ' . $child->ord . ' ' . $child->fields->[1] .
-		    ' score: ' . $score . "\n";
+                print $parent->ord . ' ' . $parent->fields->[1] .
+                    ' -> ' . $child->ord . ' ' . $child->fields->[1] .
+                    ' score: ' . $score . "\n";
                 print $parent->ord .
                     ' -> ' . $child->ord .
                     ' score: ' . $score . "\n";
@@ -153,7 +153,7 @@ Treex::Tool::Parser::MSTperl::Parser - pure Perl implementation of MST parser
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 

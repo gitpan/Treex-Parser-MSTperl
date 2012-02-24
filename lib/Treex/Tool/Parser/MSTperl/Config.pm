@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Config;
 {
-  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.08268';
 }
 
 use Moose;
@@ -22,7 +22,7 @@ has 'DEBUG' => (
 # Viterbi settings
 
 has 'SEQUENCE_BOUNDARY_LABEL' => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => 'Str',
     default => '###',
 );
@@ -36,7 +36,7 @@ has 'VITERBI_STATES_NUM_THRESHOLD' => (
 # stopping criterion of EM algorithm (when the sum of change of smoothing
 # parameters is lower than the epsilon, the algorithm stops)
 has 'EM_EPSILON' => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => 'Num',
     default => 0.00001,
 );
@@ -45,7 +45,7 @@ has 'EM_EPSILON' => (
 # (a number between 0 and 1, eg. 0.75 means that first 75% of sentences
 #  are training data and the last 25% are heldout data)
 has 'EM_heldout_data_at' => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => 'Num',
     default => 0.9,
 );
@@ -66,19 +66,19 @@ has 'labelledFeaturesControl' => (
     is  => 'rw',
 );
 
-has 'imlabelledFeaturesControl' => (
-    isa => 'Maybe[Treex::Tool::Parser::MSTperl::FeaturesControl]',
-    is  => 'rw',
-);
+# has 'imlabelledFeaturesControl' => (
+#     isa => 'Maybe[Treex::Tool::Parser::MSTperl::FeaturesControl]',
+#     is  => 'rw',
+# );
 
 # CONFIGURATION
 
 # only assigning is_member (as opposed to afun labelling)
-has 'is_member_labelling' => (
-    is      => 'ro',
-    isa     => 'Bool',
-    default => '0',
-);
+# has 'is_member_labelling' => (
+#     is      => 'ro',
+#     isa     => 'Bool',
+#     default => '0',
+# );
 
 # training mode or parsing mode
 has 'training' => (
@@ -148,29 +148,29 @@ has 'label_field_index' => (
     #    default => 'undef',
 );
 
-has 'ismember' => (
-    is      => 'rw',
-    isa     => 'Str',
-    trigger => \&_ismember_set,
-);
+# has 'ismember' => (
+#     is      => 'rw',
+#     isa     => 'Str',
+#     trigger => \&_ismember_set,
+# );
 
 # sets ismember_field_index
-sub _ismember_set {
-    my ( $self, $ismember ) = @_;
+# sub _ismember_set {
+#     my ( $self, $ismember ) = @_;
+#
+#     # set index of ismember field
+#     my $ismember_index = $self->field_name2index($ismember);
+#     $self->ismember_field_index($ismember_index);
+#
+#     return;
+# }
 
-    # set index of ismember field
-    my $ismember_index = $self->field_name2index($ismember);
-    $self->ismember_field_index($ismember_index);
-
-    return;
-}
-
-has 'ismember_field_index' => (
-    is  => 'rw',
-    isa => 'Maybe[Int]',
-
-    #    default => 'undef',
-);
+# has 'ismember_field_index' => (
+#     is  => 'rw',
+#     isa => 'Maybe[Int]',
+#
+#     #    default => 'undef',
+# );
 
 has 'root_field_values' => (
     is      => 'rw',
@@ -198,20 +198,20 @@ sub _root_field_values_set {
 has 'number_of_iterations' => (
     isa     => 'Int',
     is      => 'rw',
-    default => 10,
+    default => 3,
 );
 
 has 'labeller_number_of_iterations' => (
     isa     => 'Int',
     is      => 'rw',
-    default => 10,
+    default => 3,
 );
 
-has 'imlabeller_number_of_iterations' => (
-    isa     => 'Int',
-    is      => 'rw',
-    default => 10,
-);
+# has 'imlabeller_number_of_iterations' => (
+#     isa     => 'Int',
+#     is      => 'rw',
+#     default => 3,
+# );
 
 has 'use_edge_features_cache' => (
     is      => 'rw',
@@ -225,11 +225,11 @@ has 'labeller_use_edge_features_cache' => (
     default => '0',
 );
 
-has 'imlabeller_use_edge_features_cache' => (
-    is      => 'rw',
-    isa     => 'Bool',
-    default => '0',
-);
+# has 'imlabeller_use_edge_features_cache' => (
+#     is      => 'rw',
+#     isa     => 'Bool',
+#     default => '0',
+# );
 
 # using cache turned off to fit into RAM by default
 # turn on if training with a lot of RAM or on small training data
@@ -411,12 +411,18 @@ sub BUILD {
             'label',
             'use_edge_features_cache',
             'labeller_use_edge_features_cache',
-            'imlabeller_use_edge_features_cache',
+
+            #            'imlabeller_use_edge_features_cache',
             'number_of_iterations',
             'labeller_number_of_iterations',
-            'imlabeller_number_of_iterations',
+
+            #            'imlabeller_number_of_iterations',
             'labeller_algorithm',
+            'DEBUG',
+            'SEQUENCE_BOUNDARY_LABEL',
             'VITERBI_STATES_NUM_THRESHOLD',
+            'EM_EPSILON',
+            'EM_heldout_data_at',
         );
 
         # name => required?
@@ -476,24 +482,25 @@ sub BUILD {
         }
 
         # imlabeller features
-        if ($config->[0]->{imlabeller_features}
-            && @{ $config->[0]->{imlabeller_features} }
-            )
-        {
-            $self->imlabelledFeaturesControl(
-                Treex::Tool::Parser::MSTperl::FeaturesControl->new(
-                    'config' => $self,
-                    'feature_codes_from_config'
-                        => $config->[0]->{imlabeller_features},
-                    'use_edge_features_cache'
-                        => $self->imlabeller_use_edge_features_cache,
-                    )
-            );
-        }
+        #         if ($config->[0]->{imlabeller_features}
+        #             && @{ $config->[0]->{imlabeller_features} }
+        #             )
+        #         {
+        #             $self->imlabelledFeaturesControl(
+        #                 Treex::Tool::Parser::MSTperl::FeaturesControl->new(
+        #                     'config' => $self,
+        #                     'feature_codes_from_config'
+        #                         => $config->[0]->{imlabeller_features},
+        #                     'use_edge_features_cache'
+        #                         => $self->imlabeller_use_edge_features_cache,
+        #                     )
+        #             );
+        #         }
 
         if (!$self->unlabelledFeaturesControl
             && !$self->labelledFeaturesControl
-            && !$self->imlabelledFeaturesControl
+
+            #             && !$self->imlabelledFeaturesControl
             )
         {
             croak "MSTperl config file error: No features set!";
@@ -558,7 +565,7 @@ Treex::Tool::Parser::MSTperl::Config
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 
@@ -604,10 +611,9 @@ Some of the settings are ignored when in parsing mode (i.e. not training).
 These are use_edge_features_cache (turned off) and number_of_iterations
 (irrelevant).
 
-These are settings which are acquired from the configuration file (see also
-its contents, the options are also richly commented there):
+These are settings which are acquired from the configuration file:
 
-=head3 Basic Settings
+=head3 Required Settings
 
 =over 4
 
@@ -627,60 +633,209 @@ Field values to set for the (technical) root node.
 Name of field containing ord of the parent of the node
 (also called "head" or "governing node").
 
-=item number_of_iterations, labeller_number_of_iterations
+=item distance_buckets
 
-How many times the trainer (Tagger::MSTperl::Trainer) should go through
-all the training data (default is C<10>).
+Buckets to use for C<distance()> function (positive integers in any order).
+Each distance gets bucketed in the highest lower bucket (absolute-value-wise).
 
-=item use_edge_features_cache, labeller_use_edge_features_cache
+Default:
 
-Turns on and off using the C<edge_features_cache>. Default is C<0>.
-
-Using cache should be turned on (C<1>) if training with a lot of RAM or on small
-training data, as it uses a lot of memory but speeds up the training greatly
-(approx. by 30% to 50%). If you need to save RAM, turn it off (C<0>).
+ distance_buckets:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 11
 
 =back
 
 =head3 Features Settings
 
+Features to be computed on data.
+
+Features for the unlabelled parser are set under C<features>,
+the labeller features under C<labeller_features>.
+
+Use the (lowercase) input file field names (e.g. C<pos>)
+to use the field of the (child) node,
+uppercase them (e.g. C<POS>) to use the field of the parent,
+joined together by the C<|> sign to form the features (e.g. C<POS|LEMMA>).
+
+Prefix the field names by C<1.> or C<2.>
+to use the field on the first or second node in the sentence - based on
+their order in the sentence, regardless of which is parent and which is child
+(e.g. C<1.pos> for pos of first of the nodes).
+
+There are also several predefined functions that you can make use of.
+Usually you can write the function name in lowercase to invoke them on the child
+field, uppercase for parent, or prefixed by C<1.> or C<2.> for first or second
+node (e.g. C<CHILDNO()> to get the number of parent node's children). The
+parameter of a function must be a (child) field name, or an integer (as the
+C<index> in C<equalspcat>).
+
 =over 4
 
-=item features, labeller_features
+=item distance()
 
-Features codes to use in the unlabelled/labelled parser.
-See L<Treex::Tool::Parser::MSTperl::FeaturesControl> for details.
+bucketed ord-wise distance of child and parent: C<ORD> minus C<ord>
+
+=item attdir()
+
+parent - child attachement direction: C<signum(ORD minus ord)>
+
+=item preceding(field)
+
+value of the specified field on the ord-wise preceding node
+(use C<PRECEDING(field)> to get field on node preceding the PARENT)
+
+=item following(field)
+
+value of the specified field on the ord-wise following node
+
+=item between(field)
+
+value of the specified field for each node which is ord-wise between the child
+node and the parent node
+
+=item equals(field1,field2)
+
+Returns C<1> if the value of C<field1> is the same as
+the value of C<field2>. For fields with multiple values,
+it has the meaning of an "exists" operator: it returns
+C<1> if there is at least one pair of values of each field that are
+the same.
+
+Returns C<0> if the values don't match.
+
+Returns C<-1> if (at least) one of the vaues is
+C<undef> (may be also represented by an empty string)
+
+=item equalspc(field1,field2)
+
+like C<equals> but C<field1> is taken from parent node
+and C<field2> from child node
+
+=item equalspcat(field,position)
+
+like C<equalspc> but looks at the given position (1 character)
+in the given field
+
+=item substr(field,start,length)
+
+substring of field value beginning at given
+start position (0-based) of given length; standard substr behaviour,
+i.e. both start and length can be negative and length can be omitted,
+feature function to be then written as C<substr(field,start)>
+
+=item arrayat(array_field,index_field)
+
+array_field's value is an array of values
+separated by single spaces (' '), index_field's value is a zero-based
+index of a value in the array to be returned (used e.g. for tree distance)
+
+=item isfirst()
+
+returns 1 if node is the first in the sentence, 0 otherwise
+
+=item islast()
+
+returns C<1> if node is the last in the sentence, C<0> otherwise
+
+=item isfirstchild()
+
+returns C<1> if node is the first child of its parent, C<0> otherwise
+
+=item islastchild()
+
+returns C<1> if node is the last child of its parent, C<0> otherwise
+
+=item childno()
+
+returns number of node's children
+
+=item islastleftchild()
+
+is the rightmost of all left children of its parent
+
+=item isfirstrightchild()
+
+is the leftmost of all right children of its parent
+
+=item LABEL()
+
+label of parent (to be used only in labeller features);
+label is somewhat special, it cannot be used as C<label>, C<LABEL> or C<label()>
 
 =back
 
+See also L<Treex::Tool::Parser::MSTperl::FeaturesControl>.
+
 =head3 Internal technical settings
 
-These fields cannot be set by the config file, their default values are
-hard-coded at beginning of the source code and they can be set
-on creating the Config object, eg.:
+These settings are probably better left as they are, but it might be
+advantageous to have the ability of changing them sometimes, especially when
+experimenting.
 
- my $config = Treex::Tool::Parser::MSTperl::Config->new(
-     config_file => 'file.config',
-     VITERBI_STATES_NUM_THRESHOLD => '5',
-     EM_EPSILON => '0.00000001',
- )
-
-If there is a need, they might be changed to fully config-file-configurable
-settings in future.
+You can set the values in various ways. The order of priorities is:
 
 =over 4
 
-=item labeller_algorithm
+=item 1 set in runtime
 
-Algorithm used for Viterbi labelling as well as for training. Several
-possibilities are being tried out; if one of them finally significantly
-outscores the other variants, this will become obsolete and get deleted.
+i.e. set after having created a new Config object:
 
-=item DEBUG
+ my $config = Treex::Tool::Parser::MSTperl::Config->new(
+    config_file => 'my_config.config');
+ $config->DEBUG(4);
+
+The value is only valid from the time of setting.
+
+=item 2 set in config file
+
+in my_config.config:
+
+ DEBUG: 4
+
+in the perl script:
+
+ my $config = Treex::Tool::Parser::MSTperl::Config->new(
+    config_file => 'my_config.config');
+
+=item 3 set in the constructor
+
+i.e. set while creating a new Config object:
+
+in my_config.config:
+
+ # DEBUG: 0
+
+in the perl script:
+
+ my $config = Treex::Tool::Parser::MSTperl::Config->new(
+    config_file => 'my_config.config',
+    DEBUG => 4 );
+
+For the setting to take effect, you must not set another value in the config
+file (you can comment out setting it with '#').
+
+=item 4 the default value
+
+Used if the value is not set in runtime, in constructor or in the config file.
+
+=back
+
+Please note that setting some of the values at runtime might not be a good idea.
+
+The options are listed here together with their defaults.
+
+=over 4
+
+=item DEBUG: 0
 
 An integer specifying how much debug information you will be getting while
 running the program, ranging from 0 (no debug info)
-through 1 (progress messages - this is the default setting)
+through 1 (progress messages)
 through 2, 3 and 4 to 5 (more and more debug info).
 
 If you set this value to something higher than 1, you should always redirect
@@ -688,12 +843,93 @@ the output to a file as printing it to the console is very very slow
 (and there is so much info that you wouldn't be able to
 read anything anyway).
 
-This the only read-write field in this section, it is therefore possible
-to change its value not only on creating a new Config instance but also
-while running the program (eg, if you only want to debug only a particular
-part).
+The possibility
+to change the value
+while running the program
+might be beneficial
+e.g. if you only want to debug only a particular
+part of the program.
 
-=item SEQUENCE_BOUNDARY_LABEL
+=item number_of_iterations: 3, labeller_number_of_iterations: 3
+
+How many times the trainer (Tagger::MSTperl::Trainer) should go through
+all the training data.
+
+=item use_edge_features_cache: 0, labeller_use_edge_features_cache: 0
+
+Currently deprecated, unmaintained and probably to be removed.
+
+Turns on and off using the C<edge_features_cache>.
+
+Using cache should be turned on (C<1>) if training with a lot of RAM or on small
+training data, as it uses a lot of memory but speeds up the training greatly
+(approx. by 30% to 50%). If you need to save RAM, turn it off (C<0>).
+
+=item labeller_algorithm: 16
+
+Algorithm used for Viterbi labelling as well as for training. Several
+possibilities are being tried out
+(especially regarding the emission probabilities used in the Viterbi algorithm).
+Variant 16 significantly outperforms the other variants, so this is probably
+obsolete and will probably get deleted.
+
+=over
+
+=item (0) MIRA-trained weights
+
+recomputed by +abs(min) and converted to probs,
+transitions by MLE on labels
+
+=item (1) dtto, NOT converted to probs
+
+should be same as 0
+
+=item (2) dtto, sum in Viterbi instead of product
+
+new_prob = old_prob + emiss*trans
+
+=item (3) dtto, no recompution
+
+just strip <= 0
+
+=item (4) basic MLE
+
+no MIRA, no smoothing, uniform feature weights
+blind (unigram) transition backoff,
+blind emission backoff (but should not be necessary)
+
+=item (5) full Viterbi
+
+dtto, transition probs lambda smoothing by EM
+
+=item (8) MIRA for all
+
+completely new, based on reading, no MLE, MIRA for all,
+same features for label unigrams and label bigrams
+
+=item (9) dtto, initialize emissions and transitions by MLE
+
+=item (10)  0 + fixed best state selection
+
+=item (11) 10 + tries to use all possible labels
+
+=item (12) 10 + EM for smoothing of transitions
+
+=item (13) 11 + EM for smoothing of transitions
+
+=item (14) 10 + update uses transition probs as well
+
+=item (15) 12 + update uses transition probs as well
+
+=item (16)  8 + transitions by MLE & EM on label pairs
+
+multiplied with emission score in Viterbi and added to last state score
+
+=item (17)  dtto, different transition computation for negative scores
+
+=back
+
+=item SEQUENCE_BOUNDARY_LABEL: '###'
 
 This is only a technical thing; a label must be assigned to the (basically
 virtual) boundary of a sequence, different from any label used in the data.
@@ -711,7 +947,7 @@ Number of states to keep when pruning. The pruning takes place after each
 Viterbi step (i.e. after each computation of possible labels and their scores
 for one edge). For more details see the C<prune> subroutine.
 
-=item EM_EPSILON
+=item EM_EPSILON: 0.00001
 
 Stopping criterion of EM algorithm which is used to compute smoothing
 parameters for linear combination smoothing of transition probabilities
@@ -719,7 +955,7 @@ in some variants of the Labeller.
 (when the sum of change of smoothing
 parameters is lower than the epsilon, the algorithm stops).
 
-=item EM_heldout_data_at
+=item EM_heldout_data_at: 0.9
 
 A number between 0 and 1 specifying
 where in training data do heldout data for EM algorithm start

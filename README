@@ -1,9 +1,10 @@
 
 
 This archive contains the distribution Treex-Parser-MSTperl,
-version 0.08055:
+version 0.08268:
 
-  pure Perl implementation of MST parser
+  a non-projective dependency natural language
+parser (pure Perl implementation of the MST parser)
 
 This software is copyright (c) 2012 by Institute of Formal and Applied Linguistics, Charles University in Prague.
 

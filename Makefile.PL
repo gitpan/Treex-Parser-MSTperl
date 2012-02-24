@@ -9,15 +9,14 @@ use ExtUtils::MakeMaker 6.30;
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "pure Perl implementation of MST parser",
+  "ABSTRACT" => "a non-projective dependency natural language\nparser (pure Perl implementation of the MST parser)",
   "AUTHOR" => "Rudolf rosa <rosa\@ufal.mff.cuni.cz>",
   "BUILD_REQUIRES" => {
     "English" => 0,
     "File::Find" => 0,
-    "File::Temp" => 0,
     "FindBin" => 0,
     "Test::More" => 0,
-    "Test::Requires" => 0,
+    "perl" => "5.006",
     "strict" => 0,
     "utf8" => 0,
     "warnings" => 0
@@ -32,13 +31,14 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Carp" => 0,
     "Data::Dumper" => 0,
+    "File::Temp" => 0,
     "Graph" => "0.94",
     "Graph::ChuLiuEdmonds" => "0.05",
     "Moose" => 0,
     "YAML::Tiny" => 0,
     "autodie" => 0
   },
-  "VERSION" => "0.08055",
+  "VERSION" => "0.08268",
   "test" => {
     "TESTS" => "t/*.t"
   }

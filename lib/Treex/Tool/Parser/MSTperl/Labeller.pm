@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Labeller;
 {
-  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.08268';
 }
 
 use Moose;
@@ -218,8 +218,6 @@ sub label_subtree {
 sub label_edge {
 
     my ( $self, $edge, $states ) = @_;
-
-    my $ALGORITHM = $self->config->labeller_algorithm;
 
     my $new_states = {};
     foreach my $last_state ( keys %$states ) {
@@ -602,7 +600,7 @@ __END__
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 Treex::Tool::Parser::MSTperl::Labeller - pure Perl implementation
 of a dependency tree labeller for the MST parser
 

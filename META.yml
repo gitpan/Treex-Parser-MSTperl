@@ -1,14 +1,12 @@
 ---
-abstract: 'pure Perl implementation of MST parser'
+abstract: "a non-projective dependency natural language\nparser (pure Perl implementation of the MST parser)"
 author:
   - 'Rudolf rosa <rosa@ufal.mff.cuni.cz>'
 build_requires:
   English: 0
   File::Find: 0
-  File::Temp: 0
   FindBin: 0
   Test::More: 0
-  Test::Requires: 0
   perl: 5.006
   strict: 0
   utf8: 0
@@ -16,7 +14,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300006, CPAN::Meta::Converter version 2.113640'
+generated_by: 'Dist::Zilla version 4.300001, CPAN::Meta::Converter version 2.110580'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -25,9 +23,10 @@ name: Treex-Parser-MSTperl
 requires:
   Carp: 0
   Data::Dumper: 0
+  File::Temp: 0
   Graph: 0.94
   Graph::ChuLiuEdmonds: 0.05
   Moose: 0
   YAML::Tiny: 0
   autodie: 0
-version: 0.08055
+version: 0.08268

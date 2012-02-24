@@ -1,5 +1,8 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
+0.08268      2012-02-24
+    - a wrapper class providing a simpler API
+
 0.08055      2012-02-07
     - labeller now works
 

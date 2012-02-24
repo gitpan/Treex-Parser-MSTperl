@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::FeaturesControl;
 {
-  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.08268';
 }
 
 use Moose;
@@ -519,11 +519,9 @@ sub get_simple_feature_sub_reference {
 }
 
 sub feature_distance {
-    my ( $self, $edge, $field_index ) = @_;
+    my ( $self, $edge ) = @_;
 
-    my $distance =
-        $edge->parent->fields->[$field_index]
-        - $edge->child->fields->[$field_index];
+    my $distance = $edge->parent->ord - $edge->child->ord;
 
     my $bucket = $self->config->distance2bucket->{$distance};
     if ($bucket) {
@@ -538,12 +536,9 @@ sub feature_distance {
 }
 
 sub feature_attachement_direction {
-    my ( $self, $edge, $field_index ) = @_;
+    my ( $self, $edge ) = @_;
 
-    if ($edge->parent->fields->[$field_index]
-        < $edge->child->fields->[$field_index]
-        )
-    {
+    if ( $edge->parent->ord < $edge->child->ord ) {
         return -1;
     } else {
         return 1;
@@ -1036,11 +1031,9 @@ sub feature_array_at_cp {
 }
 
 sub feature_child_is_first_in_sentence {
-    my ( $self, $edge, $field_index ) = @_;
+    my ( $self, $edge ) = @_;
 
-    my $ord = $edge->child->fields->[$field_index];
-
-    if ( $ord == 1 ) {
+    if ( $edge->child->ord == 1 ) {
         return 1;
     } else {
         return 0;
@@ -1048,11 +1041,9 @@ sub feature_child_is_first_in_sentence {
 }
 
 sub feature_parent_is_first_in_sentence {
-    my ( $self, $edge, $field_index ) = @_;
+    my ( $self, $edge ) = @_;
 
-    my $ord = $edge->parent->fields->[$field_index];
-
-    if ( $ord == 1 ) {
+    if ( $edge->parent->ord == 1 ) {
         return 1;
     } else {
         return 0;
@@ -1060,14 +1051,10 @@ sub feature_parent_is_first_in_sentence {
 }
 
 sub feature_child_is_last_in_sentence {
-    my ( $self, $edge, $field_index ) = @_;
-
-    my $ord = $edge->child->fields->[$field_index];
+    my ( $self, $edge ) = @_;
 
     # last ord = number of nodes (because ords are 1-based, 0 is the root node)
-    my $last_ord = scalar( @{ $edge->sentence->nodes } );
-
-    if ( $ord == $last_ord ) {
+    if ( $edge->child->ord == scalar( @{ $edge->sentence->nodes } ) ) {
         return 1;
     } else {
         return 0;
@@ -1075,14 +1062,10 @@ sub feature_child_is_last_in_sentence {
 }
 
 sub feature_parent_is_last_in_sentence {
-    my ( $self, $edge, $field_index ) = @_;
-
-    my $ord = $edge->parent->fields->[$field_index];
+    my ( $self, $edge ) = @_;
 
     # last ord = number of nodes (because ords are 1-based, 0 is the root node)
-    my $last_ord = scalar( @{ $edge->sentence->nodes } );
-
-    if ( $ord == $last_ord ) {
+    if ( $edge->parent->ord == scalar( @{ $edge->sentence->nodes } ) ) {
         return 1;
     } else {
         return 0;
@@ -1239,7 +1222,7 @@ Treex::Tool::Parser::MSTperl::FeaturesControl
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 
@@ -1478,49 +1461,6 @@ L<Treex::Tool::Parser::MSTperl::Edge/signature>), the value is
 
 =back
 
-=head2 Feature functions
-
-In the C<features> field of the config file all features to be used by the model
-are set. Use the input file field names to use the field of the (child) node,
-uppercase them to use the field of the parent, prefix them by C<1.> or C<2.>
-to use the field on the first or second node in the sentence (i.e. based on
-order in sentence, regardless of which is parent and which is child).
-
-You can also make use of several functions. Again, you can usually (i.e. when
-it makes sense) write their names in lowercase to invoke them on the child
-field, uppercase for parent, or prefixed by C<1.> or C<2.> for first or second
-node. The argument of a function must always be a (child) field name.
-
-=over 4
-
-=item distance(ord_field)
-
-Bucketed ord-wise distance of child and parent (ORD minus ord)
-
-=item preceding(field)
-
-Value of the specified field on the ord-wise preceding node
-
-=item following(field)
-
-The same for ord-wise following node
-
-=item between(field)
-
-Value of the specified field for each node which is ord-wise between the child
-node and the parent node
-
-=item equals(field1,field2), equalspc(field1,field2)
-
-Returns C<1> if the values of the fields equal
-(if they have multiple values, returns 1 if at least for one pair of
-their values the values equal),
-C<0> if they don't and C<-1> if at least one of the values is undefined.
-
-C<equalspc> uses C<field1> of the parent node and C<field2> of the child node.
-
-=back
-
 =head1 METHODS
 
 =head2 Settings
@@ -1651,26 +1591,12 @@ C<array_simple_features>).
 
 =item feature_equals, feature_equals_pc, feature_equals_pc_at
 
-# from config:
-
-  equals(field1,field2) - returns 1 if the value of field1 is the same as
-      the value of field2; for fields with multiple values (eg. with
-      aligned nodes), it has the meaning of an "exists" operator: it returns
-      1 if there is at least one pair of values of each field that are
-      the same.
-      returns 0 if no values match, -1 if (at least) one of the fields is
-      undef (may be also represented by an empty string)
-
-  equalspc(field1,field2) - like equals but first field is taken from parent
-      and second from child
-
-- a simple feature function equals(field_1,field_2)
-with xquery-like "at least once" semantics for multiple values
+A simple feature function C<equals(field_1,field_2)>
+with "at least once" semantics for multiple values
 (there can be multiple alignments)
 with a special output value if one of the fields is unknown
 (maybe it suffices to emmit an undef, as this would occur iff at least
 one of the arguments is undef; but maybe not and eg. "-1" should be given)
-
 
 This makes it possible to have a simple feature which behaves like this:
 

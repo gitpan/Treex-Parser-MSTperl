@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Node;
 {
-  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.08268';
 }
 
 use Moose;
@@ -85,15 +85,16 @@ sub BUILD {
     my $parentOrd      = $self->fields->[$parentOrdIndex];
 
     # if parent is set (i.e. not filled with dummy value)
-    if ( $parentOrd != -2 ) {
+    if ( defined $parentOrd && $parentOrd != -2 ) {
 
         # set the parentOrd field
         $self->parentOrd($parentOrd);
 
-        # fill with dummy value as this must not be used
-        # (use node->parentOrd instead)
-        $self->fields->[$parentOrdIndex] = -2;
     }
+
+    # fill with dummy value as this must not be used
+    # (use node->parentOrd instead)
+    $self->fields->[$parentOrdIndex] = -2;
 
     # handle label
 
@@ -104,15 +105,16 @@ sub BUILD {
         my $label = $self->fields->[$labelIndex];
 
         # if label is set (i.e. not filled with dummy value)
-        if ( $label ne '_' ) {
+        if ( defined $label && $label ne '_' ) {
 
             # set the label field
             $self->label($label);
 
-            # fill with dummy value as this must not be used
-            # (use node->label instead)
-            $self->fields->[$labelIndex] = '_';
         }
+
+        # fill with dummy value as this must not be used
+        # (use node->label instead)
+        $self->fields->[$labelIndex] = '_';
     }
 
     #     my $debug = join ',', @{$self->fields};
@@ -162,7 +164,7 @@ Treex::Tool::Parser::MSTperl::Node
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 
@@ -215,12 +217,12 @@ is copied here, as it is used more often than the C<parent> field itself.
 
 =item my $node = my $node = Treex::Tool::Parser::MSTperl::Node->new(
     fields => [@fields],
-    featuresControl => $featuresControl,
+    config => $config,
 );
 
 Creates a new node with the given field values (C<fields>)
 and using the given L<Treex::Tool::Parser::MSTperl::Config> instance
-(C<featuresControl>).
+(C<config>).
 
 =item my $node_copy = $node->copy_nonparsed()
 

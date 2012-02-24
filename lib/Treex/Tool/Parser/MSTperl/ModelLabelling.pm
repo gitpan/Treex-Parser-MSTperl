@@ -1,9 +1,6 @@
 package Treex::Tool::Parser::MSTperl::ModelLabelling;
 {
-  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08055';
-}
-{
-  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08055';
+  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08268';
 }
 
 use Moose;
@@ -1084,7 +1081,7 @@ Treex::Tool::Parser::MSTperl::ModelLabelling
 
 =head1 VERSION
 
-version 0.08055
+version 0.08268
 
 =head1 DESCRIPTION
 
