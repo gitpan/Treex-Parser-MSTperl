@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::ModelLabelling;
 {
-  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.08268';
+  $Treex::Tool::Parser::MSTperl::ModelLabelling::VERSION = '0.09407';
 }
 
 use Moose;
@@ -158,6 +158,13 @@ sub load_data {
         $smooth_ok = 1;
     }
 
+    if ( $ALGORITHM >= 20 ) {
+
+        # these algorithms do not use separate transitions
+        # (transitions are included in emissions)
+        $transitions_ok = 1;
+    }
+
     if ( $unigrams_ok && $transitions_ok && $emissions_ok && $smooth_ok ) {
         return 1;
     } else {
@@ -260,7 +267,7 @@ sub prepare_for_mira {
             }
         }
 
-    } elsif ( $ALGORITHM == 1 || $ALGORITHM == 8 ) {
+    } elsif ( $ALGORITHM == 1 || $ALGORITHM == 8 || $ALGORITHM >= 20 ) {
 
         # no recomputing taking place
 
@@ -278,6 +285,8 @@ sub prepare_for_mira {
         || $ALGORITHM == 15
         || $ALGORITHM == 16
         || $ALGORITHM == 17
+        || $ALGORITHM == 18
+        || $ALGORITHM == 19
         )
     {
 
@@ -308,13 +317,15 @@ sub prepare_for_mira {
             || $ALGORITHM == 15
             || $ALGORITHM == 16
             || $ALGORITHM == 17
+            || $ALGORITHM == 18
+            || $ALGORITHM == 19
             )
         {
 
             # run the EM algorithm to compute
             # transtition probs smoothing params
             $self->compute_smoothing_params();
-        }    # end if $ALGORITHM == 5|12|12|16|17
+        }    # end if $ALGORITHM == 5|12|12|>=16
 
     } else {    # $ALGORITHM not in 0~9
         croak "ModelLabelling->prepare_for_mira not implemented"
@@ -524,7 +535,7 @@ sub get_label_score {
 
         return $result;
 
-    } elsif ( $ALGORITHM == 16 ) {
+    } elsif ( $ALGORITHM == 16 || $ALGORITHM == 18 ) {
 
         my $result = 0;
 
@@ -532,6 +543,23 @@ sub get_label_score {
         foreach my $feature (@$features) {
             $result += $self->get_emission_score( $label, $feature );
         }
+
+        # multiply by transitions score
+        $result *= $self->get_transition_score( $label, $label_prev );
+
+        return $result;
+
+    } elsif ( $ALGORITHM == 19 ) {
+
+        my $result = 0;
+
+        # sum of emission scores
+        foreach my $feature (@$features) {
+            $result += $self->get_emission_score( $label, $feature );
+        }
+
+        # sigmoid transformation
+        $result = 1 / ( 1 + exp( -$result * $self->config->SIGM_LAMBDA ) );
 
         # multiply by transitions score
         $result *= $self->get_transition_score( $label, $label_prev );
@@ -566,9 +594,27 @@ sub get_label_score {
             # with a positive emission score, even if low with a low transition
             # prob - normalizing scores to be non-negative would be necessary
             # for this, as is alg 0 and similar.
-            $result *=
-                ( 1 - $self->get_transition_score( $label, $label_prev ) );
+            #             $result *=
+            #                 ( 1 - $self->get_transition_score( $label, $label_prev ) );
+
+            # TODO trying new variant - setting negative scores to 0
+            $result = 0;
         }
+
+        return $result;
+
+    } elsif ( $ALGORITHM >= 20 ) {
+
+        my $result = 0;
+
+        # sum of emission scores
+        foreach my $feature (@$features) {
+            $result += $self->get_emission_score( $label, $feature );
+        }
+
+        # TODO: could also compute using $label_prev,
+        # using transitions to store these;
+        # would allow to use full Viterbi
 
         return $result;
 
@@ -592,6 +638,9 @@ sub get_emission_score {
         || $ALGORITHM == 9
         || $ALGORITHM == 16
         || $ALGORITHM == 17
+        || $ALGORITHM == 18
+        || $ALGORITHM == 19
+        || $ALGORITHM >= 20
         )
     {
 
@@ -634,6 +683,7 @@ sub get_transition_score {
         || $ALGORITHM == 12 || $ALGORITHM == 13
         || $ALGORITHM == 15
         || $ALGORITHM == 16 || $ALGORITHM == 17
+        || $ALGORITHM == 18 || $ALGORITHM == 19
         )
     {
 
@@ -950,6 +1000,8 @@ sub get_emission_scores_no_MIRA {
     # get scores
     foreach my $feature (@$features) {
         if ( $self->emissions->{$feature} ) {
+
+            # !!! TODO tady by měl bejt součin !!!
             foreach my $label ( keys %{ $self->emissions->{$feature} } ) {
                 $prob_sums{$label} +=
                     $self->emissions->{$feature}->{$label};
@@ -1081,7 +1133,7 @@ Treex::Tool::Parser::MSTperl::ModelLabelling
 
 =head1 VERSION
 
-version 0.08268
+version 0.09407
 
 =head1 DESCRIPTION
 

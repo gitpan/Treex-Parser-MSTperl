@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::Labeller;
 {
-  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.08268';
+  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.09407';
 }
 
 use Moose;
@@ -126,8 +126,8 @@ sub label_subtree {
         # 0    1  2  3      4      5       6   7  8  9
         1e300, 1, 1, 1e300, 1e300, 1e300, -1, -1, 0, 0,
 
-        # 10     11     12     13     14     15   16 17
-        1e300, 1e300, 1e300, 1e300, 1e300, 1e300, 0, 0,
+        # 10     11     12     13     14     15   16 17 18 19 20 21
+        1e300, 1e300, 1e300, 1e300, 1e300, 1e300, 0, 0, 0, 1, 0, 0,
     );
 
     # path could be constructed by backpointers
@@ -141,6 +141,7 @@ sub label_subtree {
     # In each cycle generates %new_states and sets them as %states,
     # so at the end it suffices to find the state with the best score in %states
     # and use its path as the result.
+    my $prev_edge = undef;
     foreach my $edge (@edges) {
 
         # only progress and/or debug info
@@ -153,54 +154,54 @@ sub label_subtree {
 
         # do one Viterbi step - assign possible labels to $edge
         # (including appropriate scores of course)
-        $states = $self->label_edge( $edge, $states );
+        $states = $self->label_edge( $edge, $states, $prev_edge );
+
+        if ( $ALGORITHM == 20 ) {
+
+            # set the best label
+            my $best_state_label = $self->find_best_state_label($states);
+            $edge->child->label($best_state_label);
+        }
+
+        $prev_edge = $edge;
     }
 
     # TODO: foreach last state multiply its score
     # by the label->sequence_boundary probability
 
-    # End - find the state with the best score - this is the result
-    my $best_state_label = undef;
+    if ( $ALGORITHM != 20 ) {
 
-    # "negative infinity" (works both with real probs and with their logs)
-    my $best_state_score = -999999999;
-    foreach my $state_label ( keys %$states ) {
-        if ( $self->config->DEBUG >= 4 ) {
-            print "state $state_label score: "
-                . $states->{$state_label}->{'score'} . "\n";
+        # End - find the state with the best score - this is the result
+        my $best_state_label = $self->find_best_state_label($states);
+
+        if ($best_state_label) {
+
+            my @labels = @{ $states->{$best_state_label}->{'path'} };
+
+            # get rid of SEQUENCE_BOUNDARY_LABEL
+            shift @labels;
+
+            # only progress and/or debug info
+            if ( $self->config->DEBUG >= 2 ) {
+                print "best state $best_state_label score: " . "\n";
+                print "best path: "
+                    . ( join ' ', @labels )
+                    . "\n";
+            }
+
+            foreach my $edge (@edges) {
+                my $label = shift @labels;
+                $edge->child->label($label)
+            }
+
+        } else {
+
+            # TODO do not die, provide some backoff instead
+            # (do some smoothing, at least when no states are generated)
+            print "No best state generated, cannot label the sentence!"
+                . " (This is weird.)\n";
         }
-        if ( $states->{$state_label}->{'score'} > $best_state_score ) {
-            $best_state_label = $state_label;
-            $best_state_score = $states->{$state_label}->{'score'};
-        }
-    }
-    if ($best_state_label) {
-
-        my @labels = @{ $states->{$best_state_label}->{'path'} };
-
-        # get rid of SEQUENCE_BOUNDARY_LABEL
-        shift @labels;
-
-        # only progress and/or debug info
-        if ( $self->config->DEBUG >= 2 ) {
-            print "best state $best_state_label score: "
-                . $best_state_score . "\n";
-            print "best path: "
-                . ( join ' ', @labels )
-                . "\n";
-        }
-
-        foreach my $edge (@edges) {
-            my $label = shift @labels;
-            $edge->child->label($label)
-        }
-    } else {
-
-        # TODO do not die, provide some backoff instead
-        # (do some smoothing, at least when no states are generated)
-        print "No best state generated, cannot label the sentence!"
-            . " (This is weird.)\n";
-    }
+    }    # else: edges are labelled in each step
 
     # end of Viterbi
 
@@ -212,15 +213,51 @@ sub label_subtree {
     return;
 }
 
+sub find_best_state_label {
+
+    my ( $self, $states ) = @_;
+
+    # "negative infinity" (works both with real probs and with their logs)
+    my $best_state_score = -999999999;
+    my $best_state_label = undef;
+
+    foreach my $state_label ( keys %$states ) {
+        if ( $self->config->DEBUG >= 4 ) {
+            print "state $state_label score: "
+                . $states->{$state_label}->{'score'} . "\n";
+        }
+        if ( $states->{$state_label}->{'score'} > $best_state_score ) {
+            $best_state_label = $state_label;
+            $best_state_score = $states->{$state_label}->{'score'};
+        }
+    }
+
+    # only progress and/or debug info
+    if ( $self->config->DEBUG >= 2 ) {
+        print "best state $best_state_label score: "
+            . $best_state_score . "\n";
+    }
+
+    return $best_state_label;
+}
+
 # used as an internal part of label_subtree
 # to get all probable labels for an edge
 # i.e. make one step of the Viterbi algorithm
 sub label_edge {
 
-    my ( $self, $edge, $states ) = @_;
+    my ( $self, $edge, $states, $prev_edge ) = @_;
 
+    my $ALGORITHM  = $self->config->labeller_algorithm;
     my $new_states = {};
     foreach my $last_state ( keys %$states ) {
+
+        if ( $ALGORITHM == 21 && defined $prev_edge ) {
+
+            # set last label
+            my $best_prev_state_label = $self->find_best_state_label($states);
+            $prev_edge->child->label($best_prev_state_label);
+        }
 
         # only progress and/or debug info
         if ( $self->config->DEBUG >= 4 ) {
@@ -415,6 +452,9 @@ sub get_possible_labels {
         || $ALGORITHM == 9
         || $ALGORITHM == 16
         || $ALGORITHM == 17
+        || $ALGORITHM == 18
+        || $ALGORITHM == 19
+        || $ALGORITHM >= 20
         )
     {
 
@@ -426,18 +466,78 @@ sub get_possible_labels {
 
             # score = previous score + new score
 
-            $result->{$label} =
-                $previous_label_score
-                + $self->model->get_label_score(
-                $label, $previous_label, $edge->features
-                )
-                ;
+            if ( $ALGORITHM == 20 ) {
+                if ( $self->config->DEBUG >= 4 ) {
+                    print "    Score for label $label: "
+                        . (
+                        $self->model->get_label_score(
+                            $label, $previous_label, $edge->features_all_labeller()
+                            )
+                        ) . "\n";
+                }
+                $result->{$label} =
+                    $self->model->get_label_score(
+                    $label, $previous_label, $edge->features_all_labeller()
+                    )
+                    ;
+            } elsif ( $ALGORITHM == 19 ) {
+                if ( $self->config->DEBUG >= 4 ) {
+                    print "    Score for label $label: $previous_label_score + "
+                        . (
+                        $self->model->get_label_score(
+                            $label, $previous_label, $edge->features_all_labeller()
+                            )
+                        ) . "\n";
+                }
+                $result->{$label} =
+                    $previous_label_score
+                    * $self->model->get_label_score(
+                    $label, $previous_label, $edge->features
+                    )
+                    ;
+            } elsif ( $ALGORITHM == 21 ) {
+                if ( $self->config->DEBUG >= 4 ) {
+                    print "    Score for label $label: $previous_label_score + "
+                        . (
+                        $self->model->get_label_score(
+                            $label, $previous_label, $edge->features_all_labeller()
+                            )
+                        ) . "\n";
+                }
+                $result->{$label} =
+                    $previous_label_score
+                    + $self->model->get_label_score(
+                    $label, $previous_label, $edge->features_all_labeller()
+                    )
+                    ;
+            } elsif ( $ALGORITHM == 18 ) {
+                $result->{$label} =
+                    $self->model->get_label_score(
+                    $label, $previous_label, $edge->features
+                    )
+                    ;
+            } else {
+                if ( $self->config->DEBUG >= 4 ) {
+                    print "    Score for label $label: $previous_label_score + "
+                        . (
+                        $self->model->get_label_score(
+                            $label, $previous_label, $edge->features
+                            )
+                        ) . "\n";
+                }
+                $result->{$label} =
+                    $previous_label_score
+                    + $self->model->get_label_score(
+                    $label, $previous_label, $edge->features
+                    )
+                    ;
+            }
 
         }    # end foreach $label
 
         return $result;
 
-    } else {    # $ALGORITHM not in 8,9
+    } else {    # $ALGORITHM not in 8, 9, >16
 
         my $emission_scores =
             $self->model->get_emission_scores( $edge->features );
@@ -540,6 +640,8 @@ sub get_possible_labels_internal {
         || $ALGORITHM == 9
         || $ALGORITHM == 16
         || $ALGORITHM == 17
+        || $ALGORITHM == 18
+        || $ALGORITHM == 19
         )
     {
 
@@ -600,7 +702,7 @@ __END__
 
 =head1 VERSION
 
-version 0.08268
+version 0.09407
 Treex::Tool::Parser::MSTperl::Labeller - pure Perl implementation
 of a dependency tree labeller for the MST parser
 

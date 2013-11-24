@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::ModelBase;
 {
-  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.08268';
+  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.09407';
 }
 
 use Data::Dumper;
@@ -206,7 +206,7 @@ Treex::Tool::Parser::MSTperl::ModelBase
 
 =head1 VERSION
 
-version 0.08268
+version 0.09407
 
 =head1 DESCRIPTION
 

@@ -1,13 +1,15 @@
 package Treex::Tool::Parser::MSTperl::Config;
 {
-  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.08268';
+  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.09407';
 }
 
 use Moose;
 use autodie;
 use Carp;
+use File::Spec;
 
 use Treex::Tool::Parser::MSTperl::FeaturesControl;
+use Treex::Tool::Parser::MSTperl::ModelAdditional;
 
 # varied levels of debug info,
 # ranging from 0 (no debug info)
@@ -40,6 +42,22 @@ has 'EM_EPSILON' => (
     isa     => 'Num',
     default => 0.00001,
 );
+
+# strmost sigmoidy
+has 'SIGM_LAMBDA' => (
+    is  => 'rw',
+    isa => 'Num',
+
+    #    default => 0.0015, probably good for data as they used to be :-)
+    default => 1,
+);
+
+# added to emission probs to make them non-negative
+# has 'EMISSIONS_SHIFT' => (
+#     is      => 'rw',
+#     isa     => 'Int',
+#     default => 500,
+# );
 
 # where in training data do heldout data for EM algorithm start
 # (a number between 0 and 1, eg. 0.75 means that first 75% of sentences
@@ -385,6 +403,56 @@ has 'field_indexes' => (
     default => sub { {} },
 );
 
+has lossFunction => ( is => 'rw', isa => 'Str', default => '' );
+
+has use_pmi => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => 0
+);
+
+has pmi_model_file => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => ''
+);
+
+has pmi_model_format => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 'tsv'
+);
+
+has 'pmi_buckets' => (
+    is      => 'rw',
+    isa     => 'Maybe[ArrayRef[Int]]',
+    default => undef,
+);
+
+has use_cprob => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => 0
+);
+
+has cprob_model_file => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => ''
+);
+
+has cprob_model_format => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 'tsv'
+);
+
+has 'cprob_buckets' => (
+    is      => 'rw',
+    isa     => 'Maybe[ArrayRef[Int]]',
+    default => undef,
+);
+
 # METHODS
 
 sub BUILD {
@@ -392,6 +460,23 @@ sub BUILD {
 
     if ( $self->DEBUG >= 1 ) {
         print "Processing config file " . $self->config_file . "...\n";
+    }
+
+    # check if file exists
+    unless ( -e $self->config_file ) {
+        my $dir;
+        my ( $volume, $directory, $cfile ) =
+            File::Spec->splitpath( $self->config_file );
+        $dir = File::Spec->catpath( $volume, $directory, '' );
+        my @files = ();
+        opendir( my $dirhandle, $dir ) or croak $!;
+        while ( my $file = readdir($dirhandle) ) {
+            push @files, $file;
+        }
+        closedir($dirhandle);
+        croak "The config file $cfile does not exists!\n" .
+            "The directory $dir contains the following files: " .
+            join ', ', @files;
     }
     use YAML::Tiny;
     my $config = YAML::Tiny->new;
@@ -409,14 +494,19 @@ sub BUILD {
             'parent_ord',
             'distance_buckets',
             'label',
+            'lossFunction',
+            'use_pmi',
+            'pmi_model_file',
+            'pmi_model_format',
+            'pmi_buckets',
+            'use_cprob',
+            'cprob_model_file',
+            'cprob_model_format',
+            'cprob_buckets',
             'use_edge_features_cache',
             'labeller_use_edge_features_cache',
-
-            #            'imlabeller_use_edge_features_cache',
             'number_of_iterations',
             'labeller_number_of_iterations',
-
-            #            'imlabeller_number_of_iterations',
             'labeller_algorithm',
             'DEBUG',
             'SEQUENCE_BOUNDARY_LABEL',
@@ -463,6 +553,32 @@ sub BUILD {
                         => $self->use_edge_features_cache,
                     )
             );
+
+            if ( $self->use_pmi ) {
+                my $pmi_model = Treex::Tool::Parser::MSTperl::ModelAdditional->new(
+                    config       => $self,
+                    model_file   => $self->pmi_model_file,
+                    model_format => $self->pmi_model_format,
+                    buckets      => $self->pmi_buckets,
+                );
+                my $result = $pmi_model->load();
+                if ($result) {
+                    $self->unlabelledFeaturesControl->pmi_model($pmi_model);
+                }
+            }
+
+            if ( $self->use_cprob ) {
+                my $cprob_model = Treex::Tool::Parser::MSTperl::ModelAdditional->new(
+                    config       => $self,
+                    model_file   => $self->cprob_model_file,
+                    model_format => $self->cprob_model_format,
+                    buckets      => $self->cprob_buckets,
+                );
+                my $result = $cprob_model->load();
+                if ($result) {
+                    $self->unlabelledFeaturesControl->cprob_model($cprob_model);
+                }
+            }
         }
 
         # labeller features
@@ -565,7 +681,7 @@ Treex::Tool::Parser::MSTperl::Config
 
 =head1 VERSION
 
-version 0.08268
+version 0.09407
 
 =head1 DESCRIPTION
 
@@ -767,6 +883,18 @@ is the leftmost of all right children of its parent
 label of parent (to be used only in labeller features);
 label is somewhat special, it cannot be used as C<label>, C<LABEL> or C<label()>
 
+Features containing the C<LABEL()> function are dynamic, i.e. they cannot be
+precomputed and are always computed just at the time they are needed.
+
+=item prevlabel()
+
+label of previous sibling (to be used only in labeller features);
+prevlabel is somewhat special, it cannot be used as
+C<prevlabel>, C<PREVLABEL> or C<PREVLABEL()>
+
+Features containing the C<prevlabel()> function are dynamic, i.e. they cannot be
+precomputed and are always computed just at the time they are needed.
+
 =back
 
 See also L<Treex::Tool::Parser::MSTperl::FeaturesControl>.
@@ -870,8 +998,6 @@ training data, as it uses a lot of memory but speeds up the training greatly
 Algorithm used for Viterbi labelling as well as for training. Several
 possibilities are being tried out
 (especially regarding the emission probabilities used in the Viterbi algorithm).
-Variant 16 significantly outperforms the other variants, so this is probably
-obsolete and will probably get deleted.
 
 =over
 
@@ -926,6 +1052,16 @@ same features for label unigrams and label bigrams
 multiplied with emission score in Viterbi and added to last state score
 
 =item (17)  dtto, different transition computation for negative scores
+
+=item (18) 16 + no Viterbi summing
+
+=item (19) 16, better formula for combining emissions and transitions
+
+=item (20) MIRA for all
+
+=item (21) MIRA for all, with Viterbi
+
+=item (22) MIRA for all, sentence = one sequence (disregarding tree structure)
 
 =back
 

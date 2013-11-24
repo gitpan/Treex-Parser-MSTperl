@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::ModelUnlabelled;
 {
-  $Treex::Tool::Parser::MSTperl::ModelUnlabelled::VERSION = '0.08268';
+  $Treex::Tool::Parser::MSTperl::ModelUnlabelled::VERSION = '0.09407';
 }
 
 use Moose;
@@ -152,6 +152,19 @@ sub get_feature_weight {
     }
 }
 
+sub feature_is_unknown {
+
+    # (Str $feature)
+    my ( $self, $feature ) = @_;
+
+    my $weight = $self->weights->{$feature};
+    if ($weight) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
 sub set_feature_weight {
 
     # (Str $feature, Num $weight)
@@ -195,7 +208,7 @@ Treex::Tool::Parser::MSTperl::ModelUnlabelled
 
 =head1 VERSION
 
-version 0.08268
+version 0.09407
 
 =head1 DESCRIPTION
 
