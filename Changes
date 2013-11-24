@@ -1,5 +1,8 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
+0.11306      2013-11-24
+    - updated POD a little
+
 0.11299      2013-11-24
     - safer file path handling & more detailed error reporting
 

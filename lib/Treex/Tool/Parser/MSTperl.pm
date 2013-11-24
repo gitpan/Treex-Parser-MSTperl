@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl;
 {
-  $Treex::Tool::Parser::MSTperl::VERSION = '0.09407';
+  $Treex::Tool::Parser::MSTperl::VERSION = '0.11306';
 }
 
 use Moose;
@@ -189,7 +189,7 @@ __END__
 
 =head1 VERSION
 
-version 0.09407
+version 0.11306
 Treex::Tool::Parser::MSTperl - a non-projective dependency natural language
 parser (pure Perl implementation of the MST parser)
 

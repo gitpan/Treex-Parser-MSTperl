@@ -4,6 +4,8 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+kos/Treex-Parser-MSTperl-0.09407.tar.gz
+l
 lib/Treex/Tool/Parser/MSTperl.pm
 lib/Treex/Tool/Parser/MSTperl/Config.pm
 lib/Treex/Tool/Parser/MSTperl/Edge.pm
