@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::Edge;
 {
-  $Treex::Tool::Parser::MSTperl::Edge::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::Edge::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 
 use Treex::Tool::Parser::MSTperl::Node;
 
@@ -116,7 +117,7 @@ Treex::Tool::Parser::MSTperl::Edge
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 

@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::ModelUnlabelled;
 {
-  $Treex::Tool::Parser::MSTperl::ModelUnlabelled::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::ModelUnlabelled::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 
 extends 'Treex::Tool::Parser::MSTperl::ModelBase';
 
@@ -208,7 +209,7 @@ Treex::Tool::Parser::MSTperl::ModelUnlabelled
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 

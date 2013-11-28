@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::Reader;
 {
-  $Treex::Tool::Parser::MSTperl::Reader::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::Reader::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 use autodie;
 
 has config => (
@@ -74,7 +75,7 @@ Treex::Tool::Parser::MSTperl::Reader
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 

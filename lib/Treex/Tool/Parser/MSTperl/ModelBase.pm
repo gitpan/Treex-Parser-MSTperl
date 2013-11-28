@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::ModelBase;
 {
-  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::ModelBase::VERSION = '0.11319';
 }
 
 use Data::Dumper;
+use 5.010;
 use autodie;
 use Moose;
 use Carp;
@@ -206,7 +207,7 @@ Treex::Tool::Parser::MSTperl::ModelBase
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 

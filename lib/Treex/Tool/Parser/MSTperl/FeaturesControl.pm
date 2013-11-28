@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::FeaturesControl;
 {
-  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::FeaturesControl::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 use autodie;
 use Carp;
 
@@ -1558,7 +1559,7 @@ Treex::Tool::Parser::MSTperl::FeaturesControl
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 

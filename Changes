@@ -1,5 +1,8 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
+0.11319      2013-11-28
+    - setting minimum required version
+
 0.11306      2013-11-24
     - updated POD a little
 

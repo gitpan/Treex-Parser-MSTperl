@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-
+use 5.010;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -37,7 +37,7 @@ my %WriteMakefileArgs = (
     "YAML::Tiny" => 0,
     "autodie" => 0
   },
-  "VERSION" => "0.11306",
+  "VERSION" => "0.11319",
   "test" => {
     "TESTS" => "t/*.t"
   }

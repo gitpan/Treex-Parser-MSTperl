@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::Labeller;
 {
-  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::Labeller::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 use Carp;
 
 use Treex::Tool::Parser::MSTperl::Sentence;
@@ -702,7 +703,7 @@ __END__
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 Treex::Tool::Parser::MSTperl::Labeller - pure Perl implementation
 of a dependency tree labeller for the MST parser
 

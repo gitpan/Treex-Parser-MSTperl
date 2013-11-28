@@ -1,9 +1,10 @@
 package Treex::Tool::Parser::MSTperl::Writer;
 {
-  $Treex::Tool::Parser::MSTperl::Writer::VERSION = '0.11306';
+  $Treex::Tool::Parser::MSTperl::Writer::VERSION = '0.11319';
 }
 
 use Moose;
+use 5.010;
 use autodie;
 use Carp;
 
@@ -67,7 +68,7 @@ Treex::Tool::Parser::MSTperl::Writer
 
 =head1 VERSION
 
-version 0.11306
+version 0.11319
 
 =head1 DESCRIPTION
 
