@@ -1,10 +1,9 @@
 package Treex::Tool::Parser::MSTperl::Config;
 {
-  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.11319';
+  $Treex::Tool::Parser::MSTperl::Config::VERSION = '0.11336';
 }
 
 use Moose;
-use 5.010;
 use autodie;
 use Carp;
 use File::Spec;
@@ -682,7 +681,7 @@ Treex::Tool::Parser::MSTperl::Config
 
 =head1 VERSION
 
-version 0.11319
+version 0.11336
 
 =head1 DESCRIPTION
 

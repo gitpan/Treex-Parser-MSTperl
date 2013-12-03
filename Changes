@@ -1,5 +1,8 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
+0.11336      2013-12-04
+    - removing new Perl version dependency
+
 0.11319      2013-11-28
     - setting minimum required version
 

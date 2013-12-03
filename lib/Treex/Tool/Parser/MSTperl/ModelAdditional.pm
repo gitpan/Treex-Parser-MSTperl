@@ -1,10 +1,9 @@
 package Treex::Tool::Parser::MSTperl::ModelAdditional;
 {
-  $Treex::Tool::Parser::MSTperl::ModelAdditional::VERSION = '0.11319';
+  $Treex::Tool::Parser::MSTperl::ModelAdditional::VERSION = '0.11336';
 }
 
 use Data::Dumper;
-use 5.010;
 use autodie;
 use Moose;
 use Carp;
@@ -182,7 +181,10 @@ sub load_tsv {
 sub get_value {
     my ( $self, $child, $parent ) = @_;
 
-    my $value = $self->model->{$child}->{$parent} // '?';
+    my $value = $self->model->{$child}->{$parent};
+    if ( !defined $value ) {
+        $value = '?';
+    }
 
     return $value;
 }
@@ -245,7 +247,7 @@ Treex::Tool::Parser::MSTperl::ModelAdditional
 
 =head1 VERSION
 
-version 0.11319
+version 0.11336
 
 =head1 DESCRIPTION
 

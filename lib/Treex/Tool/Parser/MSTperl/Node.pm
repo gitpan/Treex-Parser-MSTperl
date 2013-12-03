@@ -1,10 +1,9 @@
 package Treex::Tool::Parser::MSTperl::Node;
 {
-  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.11319';
+  $Treex::Tool::Parser::MSTperl::Node::VERSION = '0.11336';
 }
 
 use Moose;
-use 5.010;
 
 has config => (
     isa      => 'Treex::Tool::Parser::MSTperl::Config',
@@ -170,7 +169,7 @@ Treex::Tool::Parser::MSTperl::Node
 
 =head1 VERSION
 
-version 0.11319
+version 0.11336
 
 =head1 DESCRIPTION
 

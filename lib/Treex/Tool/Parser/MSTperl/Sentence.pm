@@ -1,10 +1,9 @@
 package Treex::Tool::Parser::MSTperl::Sentence;
 {
-  $Treex::Tool::Parser::MSTperl::Sentence::VERSION = '0.11319';
+  $Treex::Tool::Parser::MSTperl::Sentence::VERSION = '0.11336';
 }
 
 use Moose;
-use 5.010;
 
 use Treex::Tool::Parser::MSTperl::Node;
 use Treex::Tool::Parser::MSTperl::RootNode;
@@ -481,7 +480,7 @@ Treex::Tool::Parser::MSTperl::Sentence
 
 =head1 VERSION
 
-version 0.11319
+version 0.11336
 
 =head1 DESCRIPTION
 
