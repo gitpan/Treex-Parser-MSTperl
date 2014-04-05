@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::TrainerUnlabelled;
 {
-  $Treex::Tool::Parser::MSTperl::TrainerUnlabelled::VERSION = '0.11336';
+  $Treex::Tool::Parser::MSTperl::TrainerUnlabelled::VERSION = '0.11949';
 }
 
 use Moose;
@@ -305,7 +305,7 @@ Treex::Tool::Parser::MSTperl::TrainerUnlabelled
 
 =head1 VERSION
 
-version 0.11336
+version 0.11949
 
 =head1 DESCRIPTION
 

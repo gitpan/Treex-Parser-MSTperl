@@ -27,6 +27,8 @@ lib/Treex/Tool/Parser/MSTperl/Writer.pm
 lib/Treex/Tool/Parser/MSTperl/samples/labeller_test.sh
 lib/Treex/Tool/Parser/MSTperl/samples/labeller_train.sh
 lib/Treex/Tool/Parser/MSTperl/samples/sample.config
+lib/Treex/Tool/Parser/MSTperl/samples/sample.model
+lib/Treex/Tool/Parser/MSTperl/samples/sample.model.tsv
 lib/Treex/Tool/Parser/MSTperl/samples/sample_test.sh
 lib/Treex/Tool/Parser/MSTperl/samples/sample_test.tsv
 lib/Treex/Tool/Parser/MSTperl/samples/sample_train.sh

@@ -1,5 +1,8 @@
 Revision history of the Treex-Parser-MSTPerl distribution:
 
+0.11949      2014-04-05
+    - updating ArrayRef[] and similar to work under new Perl
+
 0.11336      2013-12-04
     - removing new Perl version dependency
 

@@ -1,6 +1,6 @@
 package Treex::Tool::Parser::MSTperl::RootNode;
 {
-  $Treex::Tool::Parser::MSTperl::RootNode::VERSION = '0.11336';
+  $Treex::Tool::Parser::MSTperl::RootNode::VERSION = '0.11949';
 }
 
 use Moose;
@@ -47,7 +47,7 @@ Treex::Tool::Parser::MSTperl::RootNode
 
 =head1 VERSION
 
-version 0.11336
+version 0.11949
 
 =head1 DESCRIPTION
 

@@ -28,4 +28,4 @@ requires:
   Moose: 0
   YAML::Tiny: 0
   autodie: 0
-version: 0.11336
+version: 0.11949
